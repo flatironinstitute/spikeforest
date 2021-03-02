@@ -8,6 +8,10 @@ You can load the SpikeForest recordings and ground-truth sortings directly into 
 
 **Step 2**: Install the most recent version of labbox-ephys
 
+```
+pip install --upgrade labbox-ephys
+```
+
 **Step 3**: Select a recording for download from the [spikeforest_recordings](https://github.com/flatironinstitute/spikeforest_recordings) repo. See the "recordings" folder. For example, if you browsed to the [paired_kampff](https://github.com/flatironinstitute/spikeforest_recordings/tree/master/recordings/PAIRED_KAMPFF/paired_kampff) study, you should see a collection of recordings and sortings in .json files including the recording [2014_11_25_Pair_3_0.json](https://github.com/flatironinstitute/spikeforest_recordings/blob/master/recordings/PAIRED_KAMPFF/paired_kampff/2014_11_25_Pair_3_0.json) with its ground truth sorting [2014_11_25_Pair_3_0.firings_true.json](https://github.com/flatironinstitute/spikeforest_recordings/blob/master/recordings/PAIRED_KAMPFF/paired_kampff/2014_11_25_Pair_3_0.firings_true.json). Inspecting the `self_reference` fields in these gives you URI's (universal pointers) to these:
 
 * Recording: `sha1://a205f87cef8b7f86df7a09cddbc79a1fbe5df60f/2014_11_25_Pair_3_0.json`

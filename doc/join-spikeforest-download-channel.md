@@ -1,4 +1,4 @@
-## Join the spikeforest-download kachery-p2p channel
+## Joining the spikeforest-download kachery-p2p channel
 
 After you have installed kachery-p2p and have started a kachery-p2p daemon on your computer, you can join the spikeforest-download channel by running:
 
