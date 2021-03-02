@@ -8,9 +8,7 @@ You can load the SpikeForest recordings and ground-truth sortings directly into 
 
 **Step 2**: Install the most recent version of labbox-ephys
 
-**Step 3**: Select a recording for download from the [spikeforest_recordings](https://github.com/flatironinstitute/spikeforest_recordings) repo. See the "recordings" folder. For example, if you browsed to the [paired_kampff](https://github.com/flatironinstitute/spikeforest_recordings/tree/master/recordings/PAIRED_KAMPFF/paired_kampff) study, you should see a collection of recordings and sortings in .json files.
-
-For example, the recording [2014_11_25_Pair_3_0.json](https://github.com/flatironinstitute/spikeforest_recordings/blob/master/recordings/PAIRED_KAMPFF/paired_kampff/2014_11_25_Pair_3_0.json) with its ground truth sorting [2014_11_25_Pair_3_0.firings_true.json](https://github.com/flatironinstitute/spikeforest_recordings/blob/master/recordings/PAIRED_KAMPFF/paired_kampff/2014_11_25_Pair_3_0.firings_true.json). Inspecting the `self_reference` fields in these gives you URI's (universal pointers) to these:
+**Step 3**: Select a recording for download from the [spikeforest_recordings](https://github.com/flatironinstitute/spikeforest_recordings) repo. See the "recordings" folder. For example, if you browsed to the [paired_kampff](https://github.com/flatironinstitute/spikeforest_recordings/tree/master/recordings/PAIRED_KAMPFF/paired_kampff) study, you should see a collection of recordings and sortings in .json files including the recording [2014_11_25_Pair_3_0.json](https://github.com/flatironinstitute/spikeforest_recordings/blob/master/recordings/PAIRED_KAMPFF/paired_kampff/2014_11_25_Pair_3_0.json) with its ground truth sorting [2014_11_25_Pair_3_0.firings_true.json](https://github.com/flatironinstitute/spikeforest_recordings/blob/master/recordings/PAIRED_KAMPFF/paired_kampff/2014_11_25_Pair_3_0.firings_true.json). Inspecting the `self_reference` fields in these gives you URI's (universal pointers) to these:
 
 * Recording: `sha1://a205f87cef8b7f86df7a09cddbc79a1fbe5df60f/2014_11_25_Pair_3_0.json`
 * Ground truth sorting: `sha1://c656add63d85a17840980084a1ff1cdc662a2cd5/2014_11_25_Pair_3_0.firings_true.json`
@@ -20,6 +18,7 @@ For example, the recording [2014_11_25_Pair_3_0.json](https://github.com/flatiro
 ```python
 import labbox_ephys as le
 
+recording_name = 'paired_kampff/2014_11_25_Pair_3_0'
 recording_uri = 'sha1://a205f87cef8b7f86df7a09cddbc79a1fbe5df60f/2014_11_25_Pair_3_0.json'
 sorting_uri = 'sha1://c656add63d85a17840980084a1ff1cdc662a2cd5/2014_11_25_Pair_3_0.firings_true.json'
 
@@ -29,6 +28,7 @@ sorting_true = le.LabboxEphysSortingExtractor(sorting_uri)
 channel_ids = recording.get_channel_ids()
 samplerate = recording.get_sampling_frequency()
 num_timepoints = recording.get_num_frames()
+print(f'{recording_name}')
 print(f'Recording has {len(channel_ids)} channels and {num_timepoints} timepoints (samplerate: {samplerate})')
 
 unit_ids = sorting_true.get_unit_ids()
