@@ -5,7 +5,7 @@ import spikeextractors as se
 
 def main():
     # Load the index of SpikeForest sorting outputs into a pandas dataframe
-    x = kp.load_object('sha1://21c4ad407244f18318bdbdeef2c953ad1eb61aef/sortingresults.json')
+    x = kp.load_object('sha1://52f24579bb2af1557ce360ed5ccc68e480928285/file.txt?manifest=5bfb2b44045ac3e9bd2a8fe54ef67aa932844f58')
     df = pd.DataFrame(x)
     print(x[0].keys())
 
@@ -27,7 +27,7 @@ def main():
                 'samplerate': 30000
             }
         }
-        sorting: se.SortingExtractor = le.LabboxEphysSortingExtractor(sorting_object)
+        sorting = le.LabboxEphysSortingExtractor(sorting_object)
         print(f'=========================================================')
         print(f'{study_name}/{recording_name} {sorter_name}')
         print(f'Num. units: {len(sorting.get_unit_ids())}')
