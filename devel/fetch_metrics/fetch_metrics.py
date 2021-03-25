@@ -57,7 +57,7 @@ def init_args():
         help="If non-zero, this will set a maximum number of iterations before quitting, " +
         "to give a usable sample without processing the entire data set.")
     parser.add_argument('--sortingsfile', '-s', action='store',
-        default='/home/jsoules/src/spikeforest_recordings/sortings.json',
+        default='sha1://31ea996f4aa43e1cb8719848753ebfed3a184503/example.json',
         help="The path or kachery URI for the JSON file which contains the sortings. The sortings file content " +
             "should be equivalent to the output of an API call to SpikeForest.")
     parser.add_argument('--recordingset', '-r', action='store', default='',
