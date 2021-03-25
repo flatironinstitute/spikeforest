@@ -3,8 +3,7 @@ import pandas as pd
 import labbox_ephys as le
 import numpy as np
 
-_sorting_results_uri = 'sha1://21c4ad407244f18318bdbdeef2c953ad1eb61aef/sortingresults.json'
-
+_sorting_results_uri = 'sha1://52f24579bb2af1557ce360ed5ccc68e480928285/file.txt?manifest=5bfb2b44045ac3e9bd2a8fe54ef67aa932844f58'
 
 class SFSortingResults:
     """
@@ -22,7 +21,7 @@ class SFSortingResults:
             self._sorting_results_uri = _sorting_results_uri
         else:
             self._sorting_results_uri = sorting_results_uri
-        x = kp.load_object(self._sorting_results_uri)
+        x = kp.load_json(self._sorting_results_uri)
         self._df = pd.DataFrame(x)
         print(f"Found {len(self._df)} sorting outputs")
 
