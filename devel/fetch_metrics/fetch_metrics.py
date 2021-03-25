@@ -6,6 +6,7 @@ import os
 from spikeextractors import RecordingExtractor, SortingExtractor
 from spikecomparison import GroundTruthComparison
 import spiketoolkit as st
+import time
 from typing import Any, Dict, List, TypedDict, Union
 
 import hither2 as hi
@@ -86,17 +87,7 @@ def print_per_verbose(lvl: int, msg: str):
     tabs = max(0, lvl - 1)
     print("\t" * tabs + msg)
 
-def slurp(filename: str) -> str:
-    as_one_string = ''
-    with open(filename) as f:
-        while True:
-            line = f.readline().rstrip()
-            if not line: break
-            as_one_string += line
-    return as_one_string
-
 def load_sortings() -> List[Dict[str, Any]]:
-    # hydrated_sortings = json.loads(slurp(args['sortingsfile']))
     hydrated_sortings = kp.load_json(args['sortingsfile'])
     return hydrated_sortings
 
@@ -222,6 +213,8 @@ def output_results(comparison_list):
         print(f"Results:\n{json.dumps(comparison_list, indent=4)}")
 
 def main():
+    print(f"\t\tScript execution beginning at {time.ctime()}")
+    start_time = time.time()
     global args
     args = init_args()
     if args['test'] != 0: print(f"\tRunning in TEST MODE--Execution will stop after processing {args['test']} sortings!\n")
@@ -246,7 +239,8 @@ def main():
     print_per_verbose(1, f'{count*2} jobs have been queued. Now waiting for them to complete.')
     hi.wait(None)
     output_results(comparison_list)
-
+    print(f"\n\n\t\tElapsed time: {time.time() - start_time:.3f} sec")
+    print(f"\t\tScript execution completeat {time.ctime()}")
 
 
 if __name__ == "__main__":
