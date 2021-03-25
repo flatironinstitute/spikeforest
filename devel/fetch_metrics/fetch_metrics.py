@@ -104,7 +104,7 @@ def compare_with_ground_truth(sorting: SortingExtractor, gt_sorting: SortingExtr
             "agreement_scores": ground_truth_comparison.agreement_scores.to_dict()}
 
 @hi.function(
-    'compute_quality_metrics_hi', '0.1.0',
+    'compute_quality_metrics_hi', '0.1.1',
     kachery_support=True
 )
 def compute_quality_metrics_hi(recording_uri, gt_uri, firings_uri):
@@ -124,10 +124,15 @@ def compute_quality_metrics_hi(recording_uri, gt_uri, firings_uri):
     print_per_verbose(2, f"(Comparison evaluation) Executing le.labboxEphysSortingExtractor({json.dumps(sorting_object)})")
     sorting = le.LabboxEphysSortingExtractor(sorting_object)
     print_per_verbose(2, f"Executing quality metrics")
-    return compute_quality_metrics(recording, sorting)
+    try:
+        qm = compute_quality_metrics(recording, sorting)
+    except Exception as e:
+        print(f"WARNING: Problem in compute_quality_metrics:\n{e}")
+        qm = f"Quality metric computation for recording {recording_uri} sorting {firings_uri} returned error:\n{e}"
+    return qm
 
 @hi.function(
-    'compute_ground_truth_comparison_hi', '0.1.0',
+    'compute_ground_truth_comparison_hi', '0.1.1',
     kachery_support=True
 )
 def compute_ground_truth_comparison_hi(recording_uri, gt_uri, firings_uri):
@@ -157,7 +162,12 @@ def compute_ground_truth_comparison_hi(recording_uri, gt_uri, firings_uri):
     }
     sorting = le.LabboxEphysSortingExtractor(sorting_obj)
     print_per_verbose(2, f"Executing ground-truth comparison")
-    return compare_with_ground_truth(sorting, gt_sorting)
+    try:
+        gt = compare_with_ground_truth(sorting, gt_sorting)
+    except Exception as e:
+        print(f"WARNING: Problem in compute_ground_truth_comparison:\n{e}")
+        gt = f"Ground truth comparison for gt {gt_uri} and sorting {firings_uri} returned error:\n{e}"
+    return gt
 
 def process_sorting_record(sorting_record, comparison_result_list):
     try:
@@ -194,10 +204,12 @@ def output_results(comparison_list):
             comparison_object['ground_truth_comparison'] = ground_truth_comparison_job.result.return_value
             continue
         if quality_job.status == 'error':
+            # This should no longer happen
             print(f"WARNING: quality job for {extract_sorting_reference_name(comparison_object)} had an error.")
         elif quality_job.status != 'finished':
             print(f"WARNING: unfinished non-errored quality job in {extract_sorting_reference_name(comparison_object)}--possible hither error")
         if ground_truth_comparison_job.status == 'error':
+            # This should no longer happen
             print(f"WARNING: comparison job for {extract_sorting_reference_name(comparison_object)} had an error.")
         elif ground_truth_comparison_job.status != 'finished':
             print(f"WARNING: unfinished non-errored comparison job in {extract_sorting_reference_name(comparison_object)}--possible hither error")
@@ -240,7 +252,7 @@ def main():
     hi.wait(None)
     output_results(comparison_list)
     print(f"\n\n\t\tElapsed time: {time.time() - start_time:.3f} sec")
-    print(f"\t\tScript execution completeat {time.ctime()}")
+    print(f"\t\tScript execution complete at {time.ctime()}")
 
 
 if __name__ == "__main__":
