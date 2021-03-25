@@ -57,8 +57,8 @@ def init_args():
         help="If non-zero, this will set a maximum number of iterations before quitting, " +
         "to give a usable sample without processing the entire data set.")
     parser.add_argument('--sortingsfile', '-s', action='store',
-        default='/home/jsoules/src/spikeforest_recordings/sortings.json',
-        help="The full path for the JSON file which contains the sortings. The sortings file content " +
+        default='sha1://31ea996f4aa43e1cb8719848753ebfed3a184503/example.json',
+        help="The path or kachery URI for the JSON file which contains the sortings. The sortings file content " +
             "should be equivalent to the output of an API call to SpikeForest.")
     parser.add_argument('--recordingset', '-r', action='store', default='',
         help='If set, will limit processing to the set of recordings named in the variable (e.g. "paired_kampff").')
@@ -96,7 +96,8 @@ def slurp(filename: str) -> str:
     return as_one_string
 
 def load_sortings() -> List[Dict[str, Any]]:
-    hydrated_sortings = json.loads(slurp(args['sortingsfile']))
+    # hydrated_sortings = json.loads(slurp(args['sortingsfile']))
+    hydrated_sortings = kp.load_json(args['sortingsfile'])
     return hydrated_sortings
 
 def compute_quality_metrics(recording: RecordingExtractor, sorting: SortingExtractor) -> str:
@@ -201,10 +202,15 @@ def output_results(comparison_list):
             comparison_object['quality_metric'] = quality_job.result.return_value
             comparison_object['ground_truth_comparison'] = ground_truth_comparison_job.result.return_value
             continue
-        if quality_job.status == 'error' or ground_truth_comparison_job.status == 'error':
-            print(f"ERROR: comparison {extract_sorting_reference_name(comparison_object)} had an errored job.")
-        elif quality_job.status != 'finished' or ground_truth_comparison_job.status != 'finished':
-            print(f"ERROR: unfinished non-errored job in {extract_sorting_reference_name(comparison_object)}--possible hither error")
+        if quality_job.status == 'error':
+            print(f"WARNING: quality job for {extract_sorting_reference_name(comparison_object)} had an error.")
+        elif quality_job.status != 'finished':
+            print(f"WARNING: unfinished non-errored quality job in {extract_sorting_reference_name(comparison_object)}--possible hither error")
+        if ground_truth_comparison_job.status == 'error':
+            print(f"WARNING: comparison job for {extract_sorting_reference_name(comparison_object)} had an error.")
+        elif ground_truth_comparison_job.status != 'finished':
+            print(f"WARNING: unfinished non-errored comparison job in {extract_sorting_reference_name(comparison_object)}--possible hither error")
+            
         # Replace problematic jobs with an error message (since the job itself cannot be serialized)
         comparison_object['quality_metric'] = f"Job status: {quality_job.status}"
         comparison_object['ground_truth_comparison'] = f"Job status: {ground_truth_comparison_job.status}"
