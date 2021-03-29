@@ -3,15 +3,15 @@
 import argparse
 import json
 import os
-from spikeextractors import RecordingExtractor, SortingExtractor
-from spikecomparison import GroundTruthComparison
-import spiketoolkit as st
 import time
-from typing import Any, Dict, List, TypedDict, Union
-
+from typing import Any, Dict, List, TypedDict, Union, cast
+import spikeextractors as se
 import hither2 as hi
 import kachery_p2p as kp
 import labbox_ephys as le
+
+thisdir = os.path.dirname(os.path.realpath(__file__))
+spiketoolkit_image = hi.DockerImageFromScript(name='magland/spiketoolkit', dockerfile=f'{thisdir}/docker/Dockerfile')
 
 class ArgsDict(TypedDict):
     verbose: int
@@ -83,21 +83,30 @@ def init_args():
     return args
 
 def print_per_verbose(lvl: int, msg: str):
-    if args['verbose'] < lvl: return
+    if args and (args['verbose'] < lvl): return
     tabs = max(0, lvl - 1)
     print("\t" * tabs + msg)
 
 def load_sortings() -> List[Dict[str, Any]]:
     hydrated_sortings = kp.load_json(args['sortingsfile'])
-    return hydrated_sortings
+    assert hydrated_sortings is not None
+    return cast(List[Dict[str, Any]], hydrated_sortings)
 
-def compute_quality_metrics(recording: RecordingExtractor, sorting: SortingExtractor) -> str:
+def compute_quality_metrics(recording: se.RecordingExtractor, sorting: se.SortingExtractor) -> str:
+    # import within function in case we don't have spiketoolkit installed outside the container
+    import spiketoolkit as st
+    expected_version = '0.7.4'
+    assert st.__version__ == expected_version, f'Unexpected spiketoolkit version: {st.__version__} <> {expected_version}'
     return st.validation.compute_quality_metrics(
         sorting, recording,
         metric_names=QUALITY_METRICS, as_dataframe=True).to_dict()
 
-def compare_with_ground_truth(sorting: SortingExtractor, gt_sorting: SortingExtractor):
-    ground_truth_comparison = GroundTruthComparison(gt_sorting, sorting)
+def compare_with_ground_truth(sorting: se.SortingExtractor, gt_sorting: se.SortingExtractor):
+    # import within function in case we don't have spikecomparison installed outside the container
+    import spikecomparison as sc
+    expected_sc_version = '0.3.2'
+    assert sc.__version__ == expected_sc_version, f'Unexpected spiketoolkit version: {sc.__version__} <> {expected_sc_version}'
+    ground_truth_comparison = sc.GroundTruthComparison(gt_sorting, sorting)
 
     return {"best_match_21": ground_truth_comparison.best_match_21.to_list(),
             "best_match_12": ground_truth_comparison.best_match_12.to_list(),
@@ -105,7 +114,9 @@ def compare_with_ground_truth(sorting: SortingExtractor, gt_sorting: SortingExtr
 
 @hi.function(
     'compute_quality_metrics_hi', '0.1.1',
-    kachery_support=True
+    image=spiketoolkit_image,
+    kachery_support=True,
+    modules=['labbox_ephys', 'labbox']
 )
 def compute_quality_metrics_hi(recording_uri, gt_uri, firings_uri):
     # gt_uri is not needed, but including it lets this method and the ground truth comparison use the same consistent kwargs parameters.
@@ -133,7 +144,9 @@ def compute_quality_metrics_hi(recording_uri, gt_uri, firings_uri):
 
 @hi.function(
     'compute_ground_truth_comparison_hi', '0.1.1',
-    kachery_support=True
+    image=spiketoolkit_image,
+    kachery_support=True,
+    modules=['labbox_ephys', 'labbox']
 )
 def compute_ground_truth_comparison_hi(recording_uri, gt_uri, firings_uri):
     print_per_verbose(1, f"Computing ground truth comparison for ground truth {gt_uri} and sorting {firings_uri} (recording {recording_uri})")
@@ -225,6 +238,18 @@ def output_results(comparison_list):
         print(f"Results:\n{json.dumps(comparison_list, indent=4)}")
 
 def main():
+    use_container = os.getenv('HITHER_USE_CONTAINER') in ['TRUE', '1']
+    if use_container:
+        if os.getenv('HITHER_USE_SINGULARITY'):
+            print('Using singularity containers')
+        else:
+            print('Using docker containers')
+    else:
+        print('Not using containers.')
+        print('To use container set one or both of the following environment variables:')
+        print('HITHER_USE_CONTAINER=1')
+        print('HITHER_USE_SINGULARITY=1')
+
     print(f"\t\tScript execution beginning at {time.ctime()}")
     start_time = time.time()
     global args
@@ -241,7 +266,7 @@ def main():
     jc = hi.JobCache(feed_name='default-job-cache')
     jh = hi.ParallelJobHandler(num_workers=args['workercount'])
 
-    with hi.Config(job_cache=jc, job_handler=jh):
+    with hi.Config(job_cache=jc, job_handler=jh, use_container=use_container):
         for sorting_record in sortings:
             print_per_verbose(2, f"Creating job-pair {count + 1} ({extract_sorting_reference_name(sorting_record)})")
             process_sorting_record(sorting_record, comparison_list)
