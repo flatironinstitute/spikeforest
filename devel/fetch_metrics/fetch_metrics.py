@@ -12,6 +12,8 @@ import labbox_ephys as le
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 spiketoolkit_image = hi.DockerImageFromScript(name='magland/spiketoolkit', dockerfile=f'{thisdir}/docker/Dockerfile')
+expected_spiketoolkit_version = '0.7.4'
+expected_spikecomparison_version = '0.3.2'
 
 class ArgsDict(TypedDict):
     verbose: int
@@ -95,8 +97,7 @@ def load_sortings() -> List[Dict[str, Any]]:
 def compute_quality_metrics(recording: se.RecordingExtractor, sorting: se.SortingExtractor) -> str:
     # import within function in case we don't have spiketoolkit installed outside the container
     import spiketoolkit as st
-    expected_version = '0.7.4'
-    assert st.__version__ == expected_version, f'Unexpected spiketoolkit version: {st.__version__} <> {expected_version}'
+    assert st.__version__ == expected_spiketoolkit_version, f'Unexpected spiketoolkit version: {st.__version__} <> {expected_spiketoolkit_version}'
     return st.validation.compute_quality_metrics(
         sorting, recording,
         metric_names=QUALITY_METRICS, as_dataframe=True).to_dict()
@@ -104,8 +105,7 @@ def compute_quality_metrics(recording: se.RecordingExtractor, sorting: se.Sortin
 def compare_with_ground_truth(sorting: se.SortingExtractor, gt_sorting: se.SortingExtractor):
     # import within function in case we don't have spikecomparison installed outside the container
     import spikecomparison as sc
-    expected_sc_version = '0.3.2'
-    assert sc.__version__ == expected_sc_version, f'Unexpected spiketoolkit version: {sc.__version__} <> {expected_sc_version}'
+    assert sc.__version__ == expected_spikecomparison_version, f'Unexpected spiketoolkit version: {sc.__version__} <> {expected_spikecomparison_version}'
     ground_truth_comparison = sc.GroundTruthComparison(gt_sorting, sorting)
 
     return {"best_match_21": ground_truth_comparison.best_match_21.to_list(),
