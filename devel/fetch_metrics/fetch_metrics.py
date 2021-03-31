@@ -264,14 +264,25 @@ def main():
 
     # Define job cache and (parallel) job handler
     jc = hi.JobCache(feed_name='default-job-cache')
-    jh = hi.ParallelJobHandler(num_workers=args['workercount'])
 
-    with hi.Config(job_cache=jc, job_handler=jh, use_container=use_container):
-        for sorting_record in sortings:
-            print_per_verbose(2, f"Creating job-pair {count + 1} ({extract_sorting_reference_name(sorting_record)})")
-            process_sorting_record(sorting_record, comparison_list)
-            count += 1
-            if args['test'] > 0 and count >= args['test']: break
+    # Set up the job handler
+    # example srun_command: srun --exclusive -n 1 -p <partition>
+    srun_command = os.getenv('HITHER_SRUN_COMMAND', None)
+    if srun_command is not None:
+        # hard-code num_jobs_per_batch for now, for testing
+        jh = hi.SlurmJobHandler(num_jobs_per_batch=6, max_num_batches=5, srun_command=srun_command)
+    else:
+        jh = hi.ParallelJobHandler(num_workers=args['workercount'])
+
+    try:
+        with hi.Config(job_cache=jc, job_handler=jh, use_container=use_container):
+            for sorting_record in sortings:
+                print_per_verbose(2, f"Creating job-pair {count + 1} ({extract_sorting_reference_name(sorting_record)})")
+                process_sorting_record(sorting_record, comparison_list)
+                count += 1
+                if args['test'] > 0 and count >= args['test']: break
+    finally:
+        jh.cleanup()
 
     print_per_verbose(1, f'{count*2} jobs have been queued. Now waiting for them to complete.')
     hi.wait(None)
