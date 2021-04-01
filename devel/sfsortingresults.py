@@ -52,6 +52,20 @@ class SFSortingResults:
 
         return sorting
 
+    def get_gt_sorting_output(self, study_name, recording_name):
+        # get study
+        dataset = self._df.query(f"studyName == '{study_name}'")
+        assert len(dataset) > 0, f"Study '{study_name}' not found"
+
+        # get recording
+        dataset = dataset.query(f"recordingName == '{recording_name}'")
+        assert len(dataset) > 0, f"Recording '{recording_name}' not found"
+
+        firings_uri = dataset.iloc[0]["sortingTrueUri"]
+        sorting = le.LabboxEphysSortingExtractor(firings_uri)
+
+        return sorting
+
     def get_study_names(self):
         study_names = list(np.unique(self._df["studyName"]))
         return study_names
