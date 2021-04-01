@@ -62,15 +62,6 @@ class SFSortingResults:
         assert len(dataset) > 0, f"Recording '{recording_name}' not found"
 
         firings_uri = dataset.iloc[0]["sortingTrueUri"]
-
-        # # TODO infer sample rate in a better way.
-        # sorting_object = {
-        #     'sorting_format': 'mda',
-        #     'data': {
-        #         'firings': firings_uri,
-        #         'samplerate': 30000
-        #     }
-        # }
         sorting = le.LabboxEphysSortingExtractor(firings_uri)
 
         return sorting
