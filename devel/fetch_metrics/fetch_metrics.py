@@ -26,8 +26,8 @@ class ArgsDict(TypedDict):
     use_container: bool
     use_singularity: bool
     use_slurm: bool
-    slurm_max_jobs_per_batch: int
-    slurm_max_batches: int
+    slurm_max_jobs_per_alloc: int
+    slurm_max_simultaneous_allocs: int
     _slurm_command: str
 
 args: Union[ArgsDict, None] = None
@@ -66,8 +66,8 @@ def init_args():
         'use_container': False,
         'use_singularity': False,
         'use_slurm': False,
-        'slurm_max_jobs_per_batch': 6,
-        'slurm_max_batches': 5,
+        'slurm_max_jobs_per_alloc': 6,
+        'slurm_max_simultaneous_allocs': 5,
         '_slurm_command': ""
     }
     parser = argparse.ArgumentParser(description="Compute ground-truth comparisons and quality metrics for SpikeForest records.")
@@ -103,9 +103,9 @@ def init_args():
     parser.add_argument('--slurm_accept_shared_nodes', action='store_true', default=False,
         help='If set, slurm calls will be made without --exclusive. Note that slurm must still be explicitly ' +
         'requested with the --use_slurm flag; if it is not, this value is ignored.')
-    parser.add_argument('--slurm_jobs_per_batch', action='store', type=int, default=6,
+    parser.add_argument('--slurm_jobs_per_allocation', action='store', type=int, default=6,
         help='Controls the max length of job processing queues for slurm nodes. Default 6.')
-    parser.add_argument('--slurm_max_num_batches', action='store', type=int, default=5,
+    parser.add_argument('--slurm_max_simultaneous_allocations', action='store', type=int, default=5,
         help='The maximum number of job processing queues/slurm nodes to be requested. Default 5.')
     parser.add_argument('--check_config', action='store_true', default=False,
         help='Debugging tool. If set, program will simply quit with a description of the parsed configuration.')
@@ -123,8 +123,8 @@ def init_args():
     args['use_singularity'] = parsed.use_singularity or os.getenv('HITHER_USE_SINGULARITY') in ['TRUE', '1']
     args['use_container'] = parsed.use_container or os.getenv('HITHER_USE_CONTAINER') in ['TRUE', '1'] or args['use_singularity']
     args['use_slurm'] = parsed.use_slurm
-    args['slurm_max_jobs_per_batch'] = parsed.slurm_max_jobs_per_batch
-    args['slurm_max_batches'] = parsed.slurm_max_batches
+    args['slurm_max_jobs_per_alloc'] = parsed.slurm_jobs_per_allocation
+    args['slurm_max_simultaneous_allocs'] = parsed.slurm_max_simultaneous_allocations
     # example srun_command: srun --exclusive -n 1 -p <partition>
     args['_slurm_command'] = f"srun -n 1 -p {parsed.slurm_partition} {'--exclusive' if not parsed.slurm_share else ''}"
     # if not parsed.slurm_share: args['_slurm_command'] += ' --exclusive'
@@ -329,8 +329,8 @@ def main():
     # Set up the job handler
     if args['use_slurm']:
         jh = hi.SlurmJobHandler(
-            num_jobs_per_batch=args['slurm_max_jobs_per_batch'],
-            max_num_batches=args['slurm_max_batches'],
+            num_jobs_per_allocation=args['slurm_max_jobs_per_alloc'],
+            max_simultaneous_allocations=args['slurm_max_simultaneous_allocs'],
             srun_command=args['_slurm_command']
         )
     else:
