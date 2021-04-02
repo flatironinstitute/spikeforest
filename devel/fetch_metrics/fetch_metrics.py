@@ -77,7 +77,7 @@ def init_args():
     parser.add_argument('--use_slurm', action='store_true', default=False,
         help='If set, this script will use a SlurmJobHandler and attempt to run jobs on the configured cluster. The exact ' +
         'call used by the slurm job handler to acquire resources can be customized with command-line arguments.')
-    parser.add_argument('--slurm_partition', action='store', type=str, default="CCM",
+    parser.add_argument('--slurm_partition', action='store', type=str, default="ccm",
         help='If set, slurm will use the specified text as a partition name to request. Note that slurm must be explicitly ' +
         'requested with the --use_slurm flag; if it is not, this value is ignored.')
     parser.add_argument('--slurm_accept_shared_nodes', action='store_true', default=False,
@@ -139,6 +139,9 @@ def init_configuration():
 
 def print_per_verbose(lvl: int, msg: str):
     # verbosity_level is a static value, initialized from command-line argument at setup time in init_configuration().
+    # This does not play nicely with containerization, but global arguments variables don't either; rather than passing
+    # needless verbosity parameters around, we're just going to bail if the verbosity_level property isn't set.
+    if ('verbosity_level' not in print_per_verbose.__dict__): return
     if (print_per_verbose.verbosity_level < lvl): return
     tabs = max(0, lvl - 1)
     print("\t" * tabs + msg)
