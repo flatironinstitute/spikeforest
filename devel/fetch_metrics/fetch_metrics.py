@@ -22,6 +22,13 @@ class ArgsDict(TypedDict):
     recordingset: str
     outfile: str
     workercount: int
+    job_cache: str
+    use_container: bool
+    use_singularity: bool
+    use_slurm: bool
+    slurm_max_jobs_per_batch: int
+    slurm_max_batches: int
+    _slurm_command: str
 
 args: Union[ArgsDict, None] = None
 
@@ -45,6 +52,8 @@ QUALITY_METRICS = [
     "d_prime"
 ]
 
+
+
 def init_args():
     args: ArgsDict = {
         'verbose': 0,
@@ -52,7 +61,14 @@ def init_args():
         'sortingsfile': '',
         'recordingset': '',
         'outfile': '',
-        'workercount': 0
+        'workercount': 0,
+        'job_cache': 'default-job-cache',
+        'use_container': False,
+        'use_singularity': False,
+        'use_slurm': False,
+        'slurm_max_jobs_per_batch': 6,
+        'slurm_max_batches': 5,
+        '_slurm_command': ""
     }
     parser = argparse.ArgumentParser(description="Compute ground-truth comparisons and quality metrics for SpikeForest records.")
     parser.add_argument('--verbose', '-v', action='count', default=0)
@@ -68,7 +84,31 @@ def init_args():
     parser.add_argument('--outfile', '-o', action='store', default=None,
         help='If set, JSON output (but not warnings/messages) will be written to this file (instead of to STDOUT).')
     parser.add_argument('--workercount', '-w', action='store', type=int, default=4,
-        help="If set, determines the number of worker threads for a parallel job handler.")
+        help="If set, determines the number of worker threads for a parallel job handler. Ignored if using slurm.")
+    parser.add_argument('--job_cache', action='store', type=str, default='default-job-cache',
+        help="If set, indicates the feed name for the job cache feed. If set to '', job caching is turned off.")
+    parser.add_argument('--use_container', '-C', action='store_true', default=False,
+        help='If set, hither calls will use containerization. If unset, containerization may still be used if ' +
+        'environment variable HITHER_USE_CONTAINER is set to "1" or "TRUE". Note that --use_singularity implies --use_container.')
+    parser.add_argument('--use_singularity', action='store_true', default=False,
+        help='If set, hither calls will use Singularity (rather than Docker) for containerization. Automatically implies --use_container. ' +
+        'If not set, Singularity will still be used if the HITHER_USE_SINGULARITY environment variable is set to 1 or TRUE.')
+    parser.add_argument('--use_slurm', action='store_true', default=False,
+        help='If set, this script will use a SlurmJobHandler and attempt to run jobs on the configured cluster. The exact ' +
+        'call used by the slurm job handler to acquire resources can be customized with command-line arguments, or ' +
+        'set explicitly by the HITHER_SRUN_COMMAND environment variable.')
+    parser.add_argument('--slurm_partition', action='store', type=str, default="CCM",
+        help='If set, slurm will use the specified text as a partition name to request. Note that slurm must be explicitly ' +
+        'requested with the --use_slurm flag; if it is not, this value is ignored.')
+    parser.add_argument('--slurm_accept_shared_nodes', action='store_true', default=False,
+        help='If set, slurm calls will be made without --exclusive. Note that slurm must still be explicitly ' +
+        'requested with the --use_slurm flag; if it is not, this value is ignored.')
+    parser.add_argument('--slurm_jobs_per_batch', action='store', type=int, default=6,
+        help='Controls the max length of job processing queues for slurm nodes. Default 6.')
+    parser.add_argument('--slurm_max_num_batches', action='store', type=int, default=5,
+        help='The maximum number of job processing queues/slurm nodes to be requested. Default 5.')
+    parser.add_argument('--check_config', action='store_true', default=False,
+        help='Debugging tool. If set, program will simply quit with a description of the parsed configuration.')
     parsed = parser.parse_args()
     # We would very much like to avoid this, unfortunately the argsparse module and the typing module don't play
     # at all nicely with each other. For a more robust script, we'd want to try a different solution,
@@ -78,10 +118,30 @@ def init_args():
     args['sortingsfile'] = parsed.sortingsfile
     args['recordingset'] = parsed.recordingset
     args['outfile'] = parsed.outfile
-    args['workercount'] = parsed.workercount
-    if args['workercount'] < 1: args['workercount'] = 1
-    if parsed.outfile is not None and parsed.outfile != '' and os.path.exists(parsed.outfile):
+    args['workercount'] = max(parsed.workercount, 1)
+    args['job_cache'] = parsed.job_cache
+    args['use_singularity'] = parsed.use_singularity or os.getenv('HITHER_USE_SINGULARITY') in ['TRUE', '1']
+    args['use_container'] = parsed.use_container or os.getenv('HITHER_USE_CONTAINER') in ['TRUE', '1'] or args['use_singularity']
+    args['use_slurm'] = parsed.use_slurm
+    args['slurm_max_jobs_per_batch'] = parsed.slurm_max_jobs_per_batch
+    args['slurm_max_batches'] = parsed.slurm_max_batches
+    # example srun_command: srun --exclusive -n 1 -p <partition>
+    args['_slurm_command'] = f"srun -n 1 -p {parsed.slurm_partition} {'--exclusive' if not parsed.slurm_share else ''}"
+    # if not parsed.slurm_share: args['_slurm_command'] += ' --exclusive'
+    if os.getenv('HITHER_SRUN_COMMAND') and os.getenv('HITHER_SRUN_COMMAND') is not None:
+        args['_slurm_command'] = os.getenv('HITHER_SRUN_COMMAND') or '' # or '' convinces linter that the envvar isn't null
+    if parsed.outfile is not None and parsed.outfile != '' and os.path.exists(parsed.outfile) and parsed.outfile != "/dev/null":
         raise Exception('Error: Requested to write to an existing output file. Aborting to avoid overwriting file.')
+    if(parsed.check_config):
+        print(f"""Received the following environment vars:
+            HITHER_USE_CONTAINER: {os.getenv('HITHER_USE_CONTAINER')}
+            HITHER_USE_SINGULARITY: {os.getenv('HITHER_USE_SINGULARITY')}
+            HITHER_SRUN_COMMAND: {os.getenv('HITHER_SRUN_COMMAND')}
+        """)
+        print(f"""\n\tFinal configuration:
+        {args}
+        """)
+        exit()
     return args
 
 def print_per_verbose(lvl: int, msg: str):
@@ -238,22 +298,23 @@ def output_results(comparison_list):
         print(f"Results:\n{json.dumps(comparison_list, indent=4)}")
 
 def main():
-    use_container = os.getenv('HITHER_USE_CONTAINER') in ['TRUE', '1']
-    if use_container:
-        if os.getenv('HITHER_USE_SINGULARITY'):
-            print('Using singularity containers')
-        else:
-            print('Using docker containers')
-    else:
-        print('Not using containers.')
-        print('To use container set one or both of the following environment variables:')
-        print('HITHER_USE_CONTAINER=1')
-        print('HITHER_USE_SINGULARITY=1')
-
     print(f"\t\tScript execution beginning at {time.ctime()}")
     start_time = time.time()
     global args
     args = init_args()
+
+    use_container = args['use_container']
+    if args['use_singularity']:
+        # Need to be sure that the environment variable is set, since hither will be looking for it.
+        os.environ['HITHER_USE_SINGULARITY'] = '1'
+        print(f"Current state of HITHER_USE_SINGULARITY env var: {os.getenv('HITHER_USE_SINGULARITY')}")
+        exit()
+
+    if use_container:
+        print_per_verbose(1, f"Using {'Singularity' if args['use_singularity'] else 'Docker'} containers.")
+    else:
+        print_per_verbose(1, "Running without containers.")
+
     if args['test'] != 0: print(f"\tRunning in TEST MODE--Execution will stop after processing {args['test']} sortings!\n")
     count = 0
     sortings = load_sortings()
@@ -263,14 +324,15 @@ def main():
         sortings = [s for s in sortings if s['studyName'] == args['recordingset']]
 
     # Define job cache and (parallel) job handler
-    jc = hi.JobCache(feed_name='default-job-cache')
+    jc = None if args['job_cache'] == '' else hi.JobCache(feed_name=args['job_cache'])
 
     # Set up the job handler
-    # example srun_command: srun --exclusive -n 1 -p <partition>
-    srun_command = os.getenv('HITHER_SRUN_COMMAND', None)
-    if srun_command is not None:
-        # hard-code num_jobs_per_batch for now, for testing
-        jh = hi.SlurmJobHandler(num_jobs_per_batch=6, max_num_batches=5, srun_command=srun_command)
+    if args['use_slurm']:
+        jh = hi.SlurmJobHandler(
+            num_jobs_per_batch=args['slurm_max_jobs_per_batch'],
+            max_num_batches=args['slurm_max_batches'],
+            srun_command=args['_slurm_command']
+        )
     else:
         jh = hi.ParallelJobHandler(num_workers=args['workercount'])
 
@@ -281,11 +343,11 @@ def main():
                 process_sorting_record(sorting_record, comparison_list)
                 count += 1
                 if args['test'] > 0 and count >= args['test']: break
+        print_per_verbose(1, f'{count*2} jobs have been queued. Now waiting for them to complete.')
+        hi.wait(None)
     finally:
         jh.cleanup()
 
-    print_per_verbose(1, f'{count*2} jobs have been queued. Now waiting for them to complete.')
-    hi.wait(None)
     output_results(comparison_list)
     print(f"\n\n\t\tElapsed time: {time.time() - start_time:.3f} sec")
     print(f"\t\tScript execution complete at {time.ctime()}")
