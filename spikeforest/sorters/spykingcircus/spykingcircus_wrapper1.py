@@ -6,7 +6,7 @@ thisdir = os.path.dirname(os.path.realpath(__file__))
 
 @hi.function(
     'spykingcircus_wrapper1', '0.1.0',
-    image=hi.DockerImageFromScript(name='spyking-circus', dockerfile=f'{thisdir}/docker/Dockerfile'),
+    image=hi.DockerImageFromScript(name='magland/spyking-circus', dockerfile=f'{thisdir}/docker/Dockerfile'),
     modules=['labbox_ephys', 'labbox'],
     kachery_support=True
 )
