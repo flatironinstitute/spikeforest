@@ -321,7 +321,8 @@ def main():
         count = 0
         comparison_list = []
         start_time = time.time()
-        with hi.Config(job_cache=jc, job_handler=jh, use_container=use_container):
+        log = hi.Log()
+        with hi.Config(job_cache=jc, job_handler=jh, use_container=use_container, log=log):
             for sorting_record in sortings:
                 print_per_verbose(2, f"Creating job-pair {count + 1} ({extract_sorting_reference_name(sorting_record)})")
                 process_sorting_record(sorting_record, comparison_list)
