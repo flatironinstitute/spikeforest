@@ -40,12 +40,13 @@ class SFSortingResults:
 
         firings_uri = dataset["firings"].values[0]
 
-        # TODO infer sample rate in a better way.
+        # get samplint rate
+        recording = self.get_gt_recording(study_name, recording_name, download=False)
         sorting_object = {
             'sorting_format': 'mda',
             'data': {
                 'firings': firings_uri,
-                'samplerate': 30000
+                'samplerate': recording.get_sampling_frequency()
             }
         }
         sorting = le.LabboxEphysSortingExtractor(sorting_object)
@@ -65,6 +66,20 @@ class SFSortingResults:
         sorting = le.LabboxEphysSortingExtractor(firings_uri)
 
         return sorting
+
+    def get_gt_recording(self, study_name, recording_name, download=False):
+        # get study
+        dataset = self._df.query(f"studyName == '{study_name}'")
+        assert len(dataset) > 0, f"Study '{study_name}' not found"
+
+        # get recording
+        dataset = dataset.query(f"recordingName == '{recording_name}'")
+        assert len(dataset) > 0, f"Recording '{recording_name}' not found"
+
+        recording_uri = dataset.iloc[0]["recordingUri"]
+        recording = le.LabboxEphysRecordingExtractor(recording_uri, download=download)
+
+        return recording
 
     def get_study_names(self):
         study_names = list(np.unique(self._df["studyName"]))
