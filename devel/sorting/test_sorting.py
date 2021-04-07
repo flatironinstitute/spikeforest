@@ -1,7 +1,6 @@
-import spikeforest as sf
 import hither2 as hi
 
-def main():
+def test_sorting(sorter_func):
     import labbox_ephys as le
 
     recording_name = 'paired_kampff/2014_11_25_Pair_3_0'
@@ -22,8 +21,9 @@ def main():
     print(f'Unit {unit_ids[0]} has {len(spike_train)} events')
 
     jh = hi.ParallelJobHandler(num_workers=4)
-    with hi.Config(use_container=True, job_handler=jh):
-        sorting_object = hi.Job(sf.spykingcircus_wrapper1, {
+    log = hi.Log()
+    with hi.Config(use_container=True, job_handler=jh, log=log, show_console=True):
+        sorting_object = hi.Job(sorter_func, {
             'recording_object': recording.object()
         }).wait().return_value
         sorting = le.LabboxEphysSortingExtractor(sorting_object)
@@ -31,6 +31,3 @@ def main():
     unit_ids = sorting.get_unit_ids()
     spike_train = sorting.get_unit_spike_train(unit_id=unit_ids[0])
     print(f'Unit {unit_ids[0]} has {len(spike_train)} events')
-
-if __name__ == '__main__':
-    main()
