@@ -21,6 +21,7 @@ def test_sorting(sorter_func):
     print(f'Unit {unit_ids[0]} has {len(spike_train)} events')
 
     jh = hi.ParallelJobHandler(num_workers=4)
+    # jh = hi.SlurmJobHandler(num_jobs_per_allocation=4, max_simultaneous_allocations=4, srun_command='')
     log = hi.Log()
     with hi.Config(use_container=True, job_handler=jh, log=log, show_console=True):
         sorting_object = hi.Job(sorter_func, {
