@@ -216,7 +216,7 @@ def output_results(comparison_list, outfile):
     else:
         print(f"Results:\n{json.dumps(comparison_list, indent=4)}")
 
-def extraction_loop(sortings, comparison_list, max_iterations = 0):
+def extraction_loop(*, sortings, comparison_list, max_iterations = 0):
     count = 0
     for sorting_record in sortings:
         print_per_verbose(2, f"Creating job-pair {count + 1} ({extract_sorting_reference_name(sorting_record)})")
@@ -232,10 +232,16 @@ def main():
         sortings = [s for s in sortings if s['studyName'] == args['recordingset']]
 
     comparison_list = []
+    inner_arguments = {
+        'sortings': sortings,
+        'comparison_list': comparison_list,
+        'max_iterations': std_args["test"]
+    }
     wrap(std_args,
-        job_creation_function=extraction_loop(sortings, comparison_list, std_args["test"]),
-        post_job_fn=output_results(comparison_list, std_args['outfile'])
+        job_creation_function=extraction_loop,
+        wrapped_arguments=inner_arguments
     )
+    output_results(comparison_list, std_args['outfile'])
     print(f"\t\tScript execution complete at {time.ctime()}")
 
 
