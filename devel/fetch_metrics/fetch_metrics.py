@@ -5,7 +5,7 @@ import json
 import os
 import time
 from typing import Any, Dict, List, TypedDict, cast
-from common.calling_framework import add_standard_args, parse_shared_configuration, print_per_verbose, wrap
+from spikeforest._common.calling_framework import add_standard_args, parse_shared_configuration, print_per_verbose, wrap
 import spikeextractors as se
 import hither2 as hi
 import kachery_p2p as kp
