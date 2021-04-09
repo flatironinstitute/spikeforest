@@ -5,7 +5,7 @@ import json
 import os
 import time
 from typing import Any, Dict, List, TypedDict, cast
-from spikeforest._common.calling_framework import add_standard_args, parse_shared_configuration, print_per_verbose, wrap
+from spikeforest._common.calling_framework import add_standard_args, extract_hither_config, parse_shared_configuration, print_per_verbose, wrap
 import spikeextractors as se
 import hither2 as hi
 import kachery_p2p as kp
@@ -216,7 +216,7 @@ def output_results(comparison_list, outfile):
     else:
         print(f"Results:\n{json.dumps(comparison_list, indent=4)}")
 
-def extraction_loop(*, sortings, comparison_list, max_iterations = 0):
+def extraction_loop(sortings, comparison_list, max_iterations = 0):
     count = 0
     for sorting_record in sortings:
         print_per_verbose(2, f"Creating job-pair {count + 1} ({extract_sorting_reference_name(sorting_record)})")
@@ -230,18 +230,19 @@ def main():
     sortings = load_sortings(args['sortingsfile'])
     if args['recordingset'] is not None and args['recordingset'] != '':
         sortings = [s for s in sortings if s['studyName'] == args['recordingset']]
-
+    hither_config = extract_hither_config(std_args)
     comparison_list = []
-    inner_arguments = {
-        'sortings': sortings,
-        'comparison_list': comparison_list,
-        'max_iterations': std_args["test"]
-    }
-    wrap(std_args,
-        job_creation_function=extraction_loop,
-        wrapped_arguments=inner_arguments
-    )
+    try:
+        print(f"\t\tScript execution beginning at {time.ctime()}")
+        start_time = time.time()
+        with hi.Config(**hither_config):
+            extraction_loop(sortings, comparison_list, std_args['test'])
+        hi.wait(None)
+    finally:
+        hither_config['jh'].cleanup()
+
     output_results(comparison_list, std_args['outfile'])
+    print(f"\n\n\t\tElapsed time: {time.time() - start_time:.3f} sec")
     print(f"\t\tScript execution complete at {time.ctime()}")
 
 

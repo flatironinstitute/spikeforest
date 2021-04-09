@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
 import os
-import time
-from typing import Any, Dict, TypedDict, Union
+from typing import Any, TypedDict, Union
 import hither2 as hi
 
 
@@ -129,7 +128,7 @@ def print_per_verbose(lvl: int, msg: str):
     tabs = max(0, lvl - 1)
     print("\t" * tabs + msg)
 
-def wrap(args: StandardArgs, *, job_creation_function: Any, wrapped_arguments: Dict[str, Any]) -> Any:
+def extract_hither_config(args: StandardArgs):
     use_container = args['use_container']
     if args['test'] != 0: print(f"\tRunning in TEST MODE--Execution will stop after processing {args['test']} sortings!\n")
 
@@ -137,7 +136,6 @@ def wrap(args: StandardArgs, *, job_creation_function: Any, wrapped_arguments: D
         print_per_verbose(1, f"Using {'Singularity' if os.getenv('use_singularity') else 'Docker'} containers.")
     else:
         print_per_verbose(1, "Running without containers.")
-
     # Define job cache and job handler
     jc = None if args['job_cache'] == None else hi.JobCache(feed_name=args['job_cache'])
     if args['use_slurm']:
@@ -149,15 +147,9 @@ def wrap(args: StandardArgs, *, job_creation_function: Any, wrapped_arguments: D
     else:
         jh = hi.ParallelJobHandler(num_workers=args['workercount'])
     log = hi.Log()
-
-    try:
-        print(f"\t\tScript execution beginning at {time.ctime()}")
-        start_time = time.time()
-        with hi.Config(job_cache=jc, job_handler=jh, use_container=use_container, log=log):
-            job_creation_function(**wrapped_arguments)
-        hi.wait(None)
-    finally:
-        jh.cleanup()
-
-    print(f"\n\n\t\tElapsed time: {time.time() - start_time:.3f} sec")
-    print(f"\t\tWrapped execution complete at {time.ctime()}")
+    return {
+        'job_cache': jc,
+        'job_handler': jh,
+        'use_container': use_container,
+        'log': log
+    }
