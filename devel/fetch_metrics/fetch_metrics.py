@@ -5,7 +5,7 @@ import json
 import os
 import time
 from typing import Any, Dict, List, TypedDict, cast
-from spikeforest._common.calling_framework import add_standard_args, extract_hither_config, parse_shared_configuration, print_per_verbose
+from spikeforest._common.calling_framework import add_standard_args, call_cleanup, extract_hither_config, parse_shared_configuration, print_per_verbose
 import spikeextractors as se
 import hither2 as hi
 import kachery_p2p as kp
@@ -239,7 +239,7 @@ def main():
             extraction_loop(sortings, comparison_list, std_args['test'])
         hi.wait(None)
     finally:
-        hither_config['jh'].cleanup()
+        call_cleanup(hither_config)
 
     output_results(comparison_list, std_args['outfile'])
     print(f"\n\n\t\tElapsed time: {time.time() - start_time:.3f} sec")

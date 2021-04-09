@@ -19,6 +19,13 @@ class StandardArgs(TypedDict):
     slurm_max_simultaneous_allocs: int
     slurm_command: str
 
+class HitherConfiguration(TypedDict):
+    job_handler: Any
+    job_cache: Any
+    use_container: bool
+    log: Any
+
+
 RECORDING_URI_KEY = 'recordingUri'
 GROUND_TRUTH_URI_KEY = 'sortingTrueUri'
 SORTING_FIRINGS_URI_KEY = 'firings'
@@ -128,7 +135,7 @@ def print_per_verbose(lvl: int, msg: str):
     tabs = max(0, lvl - 1)
     print("\t" * tabs + msg)
 
-def extract_hither_config(args: StandardArgs):
+def extract_hither_config(args: StandardArgs) -> HitherConfiguration:
     use_container = args['use_container']
     if args['test'] != 0: print(f"\tRunning in TEST MODE--Execution will stop after processing {args['test']} sortings!\n")
 
@@ -153,3 +160,7 @@ def extract_hither_config(args: StandardArgs):
         'use_container': use_container,
         'log': log
     }
+    
+def call_cleanup(config: HitherConfiguration) -> None:
+    if config['job_handler'] is not None:
+        config['job_handler'].cleanup()
