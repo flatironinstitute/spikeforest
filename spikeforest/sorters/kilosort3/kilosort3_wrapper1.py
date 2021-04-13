@@ -34,7 +34,8 @@ def get_image(**kwargs):
     'kilosort3_wrapper1', '0.1.0',
     image=get_image,
     modules=['labbox_ephys', 'labbox'],
-    kachery_support=True
+    kachery_support=True,
+    nvidia_support=True
 )
 def kilosort3_wrapper1(
     recording_object: dict,

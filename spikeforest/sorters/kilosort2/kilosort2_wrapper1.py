@@ -31,10 +31,11 @@ def get_image(**kwargs):
     )
 
 @hi.function(
-    'kilosort2_wrapper1', '0.1.0',
+    'kilosort2_wrapper1', '0.1.1',
     image=get_image,
     modules=['labbox_ephys', 'labbox'],
-    kachery_support=True
+    kachery_support=True,
+    nvidia_support=True
 )
 def kilosort2_wrapper1(
     recording_object: dict,
@@ -45,26 +46,26 @@ def kilosort2_wrapper1(
         ######################################################################################################################################################
         # Make sure kilosort is installed, compiled and at the right commit
         if os.getenv('HITHER_IN_CONTAINER') == '1':
-                kp.ShellScript(f'''
-                cd {tmpdir}/Kilosort2/CUDA
-                mexGPUall
-                ''').write(f'{tmpdir}/compile_ks.m')
+            kp.ShellScript(f'''
+            cd {tmpdir}/Kilosort2/CUDA
+            mexGPUall
+            ''').write(f'{tmpdir}/compile_ks.m')
 
-                compile_script = kp.ShellScript(f'''
-                #!/bin/bash
-                set -e
+            compile_script = kp.ShellScript(f'''
+            #!/bin/bash
+            set -e
 
-                # copy the source code over to the working directory so we don't have permissions issues during compilation
-                cp -r /src/Kilosort2 {tmpdir}/
+            # copy the source code over to the working directory so we don't have permissions issues during compilation
+            cp -r /src/Kilosort2 {tmpdir}/
 
-                cd {tmpdir}
-                matlab -batch compile_ks
-                ''')
-                compile_script.start()
-                retval = compile_script.wait()
-                assert (retval == 0)
-                kilosort2_path = f'{tmpdir}/Kilosort2'
-                os.environ['KILOSORT2_PATH'] = kilosort2_path
+            cd {tmpdir}
+            matlab -batch compile_ks
+            ''')
+            compile_script.start()
+            retval = compile_script.wait()
+            assert (retval == 0)
+            kilosort2_path = f'{tmpdir}/Kilosort2'
+            os.environ['KILOSORT2_PATH'] = kilosort2_path
         else:
             kilosort2_path = os.getenv('KILOSORT2_PATH', None)
             if not kilosort2_path:
