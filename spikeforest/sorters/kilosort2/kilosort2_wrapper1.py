@@ -40,7 +40,6 @@ def kilosort2_wrapper1(
     recording_object: dict,
 ) -> dict:
     import labbox_ephys as le
-    import spikesorters as ss
 
     with kp.TemporaryDirectory(prefix='tmp_kilosort2') as tmpdir:
         ######################################################################################################################################################
@@ -64,12 +63,17 @@ def kilosort2_wrapper1(
                 compile_script.start()
                 retval = compile_script.wait()
                 assert (retval == 0)
-                os.environ['KILOSORT2_PATH'] = f'{tmpdir}/Kilosort2'
-        kilosort2_path = os.getenv('KILOSORT2_PATH', None)
-        if not kilosort2_path:
-            raise Exception(f'Environment variable not set: KILOSORT2_PATH')
+                kilosort2_path = f'{tmpdir}/Kilosort2'
+                os.environ['KILOSORT2_PATH'] = kilosort2_path
+        else:
+            kilosort2_path = os.getenv('KILOSORT2_PATH', None)
+            if not kilosort2_path:
+                raise Exception(f'Environment variable not set: KILOSORT2_PATH')
         if not os.path.isdir(kilosort2_path):
             raise Exception(f'Not a directory: {kilosort2_path}')
+
+        # important to import this after KILOSORT2_PATH is set
+        import spikesorters as ss
 
         mex_paths = [f'{kilosort2_path}/CUDA/{fname}' for fname in ['mexClustering2.mexa64', 'mexDistances2.mexa64', 'mexFilterPCs.mexa64', 'mexGetSpikes2.mexa64', 'mexMPnu8.mexa64']] # sampling of some of the files
         for mex_path in mex_paths:
@@ -97,7 +101,8 @@ def kilosort2_wrapper1(
         sorter = ss.Kilosort2Sorter(
             recording=recording,
             output_folder=f'{tmpdir}/working',
-            delete_output_folder=True
+            delete_output_folder=True,
+            kilosort2_path
         )
 
         sorter.set_params(
