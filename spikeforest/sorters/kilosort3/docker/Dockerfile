@@ -22,7 +22,6 @@ RUN apt-get install -y gcc-8 g++-8 && ln -sf /usr/bin/gcc-8 /usr/bin/gcc && ln -
 RUN pip install spikesorters==0.4.4
 
 RUN mkdir -p /src && git clone https://github.com/MouseLand/Kilosort /src/Kilosort3 && cd /src/Kilosort3 && git checkout a1fccd9abf13ce5dc3340fae8050f9b1d0f8ab7a
-ENV KILOSORT3_PATH=/src/Kilosort3
 
 ENV HITHER_IN_CONTAINER=1
     

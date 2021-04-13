@@ -15,11 +15,13 @@ RUN pip install simplejson requests click
 
 RUN pip install h5py
 
+# gcc-8 (cuda mex doesn't seem to work with gcc >8)
+RUN apt-get install -y gcc-8 g++-8 && ln -sf /usr/bin/gcc-8 /usr/bin/gcc && ln -sf /usr/bin/g++-8 /usr/bin/g++
+
 # spikeinterface/spikesorters
 RUN pip install spikesorters==0.4.4
 
 RUN mkdir -p /src && git clone https://github.com/MouseLand/Kilosort /src/Kilosort2 && cd /src/Kilosort2 && git checkout v2.0
-ENV KILOSORT2_PATH=/src/Kilosort2
 
 ENV HITHER_IN_CONTAINER=1
     
