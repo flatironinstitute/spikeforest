@@ -101,8 +101,7 @@ def kilosort2_wrapper1(
         sorter = ss.Kilosort2Sorter(
             recording=recording,
             output_folder=f'{tmpdir}/working',
-            delete_output_folder=True,
-            kilosort2_path
+            delete_output_folder=True
         )
 
         sorter.set_params(
