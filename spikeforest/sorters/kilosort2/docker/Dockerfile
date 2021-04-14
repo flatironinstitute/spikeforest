@@ -1,4 +1,4 @@
-FROM spikeinterface/kilosort2:0.1.0
+FROM spikeinterface/kilosort2-base:0.1.0
 
 RUN pip install simplejson requests click
 

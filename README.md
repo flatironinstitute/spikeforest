@@ -14,6 +14,8 @@ Please see the [SpikeForest2](https://github.com/flatironinstitute/spikeforest2)
 
 [How can I visualize a SpikeForest sorting using labbox-ephys?](./doc/labbox-ephys.md)
 
+[How can I run containerized spike sorting on my own computer?](./doc/spike-sorting.md)
+
 ## Questions with answers in progress
 
 * What is SpikeForest?

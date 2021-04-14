@@ -1,4 +1,4 @@
-FROM spikeinterface/spyking-circus:1.0.7
+FROM spikeinterface/spyking-circus-base:1.0.7
 
 RUN pip install simplejson requests click
 

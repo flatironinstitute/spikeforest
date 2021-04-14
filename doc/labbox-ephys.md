@@ -1,6 +1,6 @@
 # Viewing a SpikeForest recording/sorting using labbox-ephys
 
-**Step 1**: Install and set up `kachery-p2p` and `labbox-ephys` as in [these instructions](./download-spikeforest-data.md).
+**Step 1**: Install and set up `kachery-p2p` and `spikeforest` as in [these instructions](./download-spikeforest-data.md).
 
 **Step 2** Run the labbox-ephys web server locally
 

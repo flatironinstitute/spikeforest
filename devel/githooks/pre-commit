@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "Verifying code generation is up-to-date"
+jinjaroot verify

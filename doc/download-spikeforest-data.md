@@ -8,12 +8,12 @@ You can load the SpikeForest recordings and ground-truth sortings directly into 
 
 **Step 1b**: [Join the spikeforest-download channel](./join-spikeforest-download-channel.md)
 
-## Step 2: Install labbox-ephys
+## Step 2: Install spikeforest
 
-Install the most recent version of labbox-ephys:
+Install the most recent version of spikeforest:
 
 ```
-pip install --upgrade labbox-ephys
+pip install --upgrade spikeforest
 ```
 
 ## Step 3: Select a recording for download

@@ -1,4 +1,4 @@
-FROM spikeinterface/mountainsort4:1.0.0
+FROM spikeinterface/mountainsort4-base:1.0.0
 
 RUN pip install simplejson requests click
 

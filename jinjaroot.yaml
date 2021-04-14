@@ -1,7 +1,8 @@
 projectName: spikeforest
-projectVersion: 0.12.1
+projectVersion: 0.12.2
 projectAuthor: Jeremy Magland
 projectAuthorEmail: jmagland@flatironinstitute.org
 projectDescription:
 projectUrl: https://github.com/flatironinstitute/spikeforest
 projectBugTrackerUrl: https://github.com/flatironinstitute/spikeforest/issues
+pythonPackageDir: .
