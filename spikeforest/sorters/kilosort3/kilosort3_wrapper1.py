@@ -31,7 +31,7 @@ def get_image(**kwargs):
     )
 
 @hi.function(
-    'kilosort3_wrapper1', '0.1.0',
+    'kilosort3_wrapper1', '0.1.1',
     image=get_image,
     modules=['labbox_ephys', 'labbox'],
     kachery_support=True,
@@ -41,7 +41,6 @@ def kilosort3_wrapper1(
     recording_object: dict,
 ) -> dict:
     import labbox_ephys as le
-    import spikesorters as ss
 
     with kp.TemporaryDirectory(prefix='tmp_kilosort3') as tmpdir:
         ######################################################################################################################################################
@@ -65,13 +64,18 @@ def kilosort3_wrapper1(
             compile_script.start()
             retval = compile_script.wait()
             assert (retval == 0)
-            os.environ['KILOSORT3_PATH'] = f'{tmpdir}/Kilosort3'
-        kilosort3_path = os.getenv('KILOSORT3_PATH', None)
-        if not kilosort3_path:
-            raise Exception(f'Environment variable not set: KILOSORT3_PATH')
+            kilosort3_path = f'{tmpdir}/Kilosort3'
+            os.environ['KILOSORT3_PATH'] = kilosort3_path
+        else:
+            kilosort3_path = os.getenv('KILOSORT3_PATH', None)
+            if not kilosort3_path:
+                raise Exception(f'Environment variable not set: KILOSORT3_PATH')
         if not os.path.isdir(kilosort3_path):
             raise Exception(f'Not a directory: {kilosort3_path}')
-        
+            
+        # important to import this after KILOSORT3_PATH is set
+        import spikesorters as ss
+
         mex_paths = [f'{kilosort3_path}/CUDA/{fname}' for fname in ['mexClustering2.mexa64', 'mexDistances2.mexa64', 'mexFilterPCs.mexa64', 'mexGetSpikes2.mexa64']] # sampling of some of the files
         for mex_path in mex_paths:
             if not os.path.isfile(mex_path):
