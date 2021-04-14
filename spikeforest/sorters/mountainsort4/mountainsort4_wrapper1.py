@@ -21,7 +21,6 @@ def mountainsort4_wrapper1(
     freq_min=300,
     freq_max=6000,
     whiten=True,
-    curation=False,
     filter=True
 ) -> dict:
     # test import
