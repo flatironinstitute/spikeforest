@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker push magland/mountainsort4:0.3.6
+docker push magland/mountainsort4:1.0.0

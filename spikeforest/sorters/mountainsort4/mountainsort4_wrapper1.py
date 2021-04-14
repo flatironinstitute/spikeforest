@@ -25,10 +25,9 @@ def mountainsort4_wrapper1(
     filter=True
 ) -> dict:
     # test import
-    import ml_ms4alg
+    import mountainsort4 as ms4
 
     import labbox_ephys as le
-    import spikesorters as ss
     import spiketoolkit as st
 
     recording = le.LabboxEphysRecordingExtractor(recording_object)
@@ -36,12 +35,6 @@ def mountainsort4_wrapper1(
     # Sorting
     print('Sorting...')
     with kp.TemporaryDirectory(prefix='tmp_mountainsort4') as tmpdir:
-        sorter = ss.Mountainsort4Sorter(
-            recording=recording,
-            output_folder=f'{tmpdir}/working',
-            delete_output_folder=True
-        )
-
         num_workers = 1
 
         # preprocessing
@@ -62,7 +55,7 @@ def mountainsort4_wrapper1(
             )
         
         timer = time.time()
-        sorting = ml_ms4alg.mountainsort4(
+        sorting = ms4.mountainsort4(
             recording=recording,
             detect_sign=detect_sign,
             adjacency_radius=adjacency_radius,
@@ -74,6 +67,5 @@ def mountainsort4_wrapper1(
         ) 
         elapsed = time.time() - timer
         print('#SF-SORTER-RUNTIME#{:.3f}#'.format(timer))
-        sorting = sorter.get_result()
 
         return le.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)

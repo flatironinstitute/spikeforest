@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t magland/mountainsort4:0.3.6 .
+docker build -t magland/mountainsort4:1.0.0 .
