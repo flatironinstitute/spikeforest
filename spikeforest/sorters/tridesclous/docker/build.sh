@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t magland/tridesclous:1.6.0 .
+docker build -t magland/tridesclous:1.6.1 .
