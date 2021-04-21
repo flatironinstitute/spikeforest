@@ -17,7 +17,7 @@ class StandardArgs(TypedDict):
     slurm_max_simultaneous_allocs: int
     slurm_command: str
 
-class HitherConfiguration(NamedTuple):
+class HitherConfiguration(TypedDict):
     job_handler: Any
     job_cache: Any
     use_container: bool
@@ -156,5 +156,5 @@ def extract_hither_config(args: StandardArgs) -> HitherConfiguration:
     )
     
 def call_cleanup(config: HitherConfiguration) -> None:
-    if config.job_handler is not None:
-        config.job_handler.cleanup()
+    if config['job_handler'] is not None:
+        config['job_handler'].cleanup()
