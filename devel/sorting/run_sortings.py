@@ -3,9 +3,9 @@
 import argparse
 import json
 import os
-from spikeforest._common.calling_framework import HitherConfiguration, StandardArgs, add_standard_args, call_cleanup, extract_hither_config, parse_shared_configuration
+from spikeforest._common.calling_framework import StandardArgs, add_standard_args, call_cleanup, extract_hither_config, parse_shared_configuration
 from datetime import datetime
-from typing import Any, Callable, Dict, Generic, List, NamedTuple, Tuple, TypedDict, TypeVar, Union, cast
+from typing import Any, Dict, List, NamedTuple, Tuple, TypedDict, Union
 import yaml
 
 import spikeextractors as se
@@ -93,6 +93,16 @@ def init_configuration():
             args['study_source_file'] = spec_yaml['studysets']
     if not os.path.exists(args['study_source_file']):
         raise FileNotFoundError(f"Requested study source file {args['study_source_file']} does not exist.")
+    if (parsed.check_config):
+        print(f"""Received the following environment vars:
+            HITHER_USE_CONTAINER: {os.getenv('HITHER_USE_CONTAINER')}
+            HITHER_USE_SINGULARITY: {os.getenv('HITHER_USE_SINGULARITY')}
+            HITHER_MATLAB_MLM_LICENSE_FILE: {os.getenv('HITHER_MATLAB_MLM_LICENSE_FILE')}
+        """)
+        print(f"\n\tFinal Shared configuration:\n{json.dumps(std_args, indent=4)}")
+        print(f"\n\tFinal configuration:\n{json.dumps(args, indent=4)}")
+        exit()
+
     return (args, std_args)
 
 def init_args():

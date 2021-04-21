@@ -1,15 +1,13 @@
 #!/usr/bin/python
 
 import os
-from typing import Any, TypedDict, Union
+from typing import Any, TypedDict, NamedTuple, Union
 import hither2 as hi
 
 
+# NamedTuple is probably cleaner, but keeping a dict is more convenient for screen output.
 class StandardArgs(TypedDict):
-    verbose: int
     test: int
-    sortingsfile: str
-    recordingset: str
     outfile: str
     workercount: int
     job_cache: Union[str, None]
@@ -19,7 +17,7 @@ class StandardArgs(TypedDict):
     slurm_max_simultaneous_allocs: int
     slurm_command: str
 
-class HitherConfiguration(TypedDict):
+class HitherConfiguration(NamedTuple):
     job_handler: Any
     job_cache: Any
     use_container: bool
@@ -76,6 +74,8 @@ def add_standard_args(parser: Any) -> Any:
         help='Controls the max length of job processing queues for slurm nodes. Default 6.')
     parser.add_argument('--slurm-max-simultaneous-allocations', action='store', type=int, default=5,
         help='The maximum number of job processing queues/slurm nodes to be requested. Default 5.')
+    parser.add_argument('--slurm-gpus-per-node', action='store', type=int, default=0,
+        help='If set, slurm commands will require this many GPUs per allocated node.')
     parser.add_argument('--check-config', action='store_true', default=False,
         help='Debugging tool. If set, program will simply quit with a description of the parsed configuration.')
     parsed = parser.parse_args()
@@ -94,39 +94,31 @@ def parse_shared_configuration(parsed: Any):
         StandardArgs: A dictionary of compiled run values, to be passed to future calls from this file.
     """    
 
-    args: StandardArgs = {
-        'verbose': 0,
-        'test': 0,
-        'sortingsfile': '',
-        'recordingset': '',
-        'outfile': '',
-        'workercount': 0,
-        'job_cache': 'default-job-cache',
-        'use_container': False,
-        'use_slurm': False,
-        'slurm_max_jobs_per_alloc': 6,
-        'slurm_max_simultaneous_allocs': 5,
-        'slurm_command': ""
-    }
-    # We would very much like to avoid this manual copying, unfortunately the argsparse module and the typing module
-    # don't play at all nicely with each other. Maybe fix this later (keyword TAP/typed arg parser)
-    args['verbose'] = parsed.verbose or 0
-    args['test'] = parsed.test
-    args['outfile'] = parsed.outfile
-    args['workercount'] = max(parsed.workercount, 1)
-    # As a reminder, argparse converts internal -es to _s to keep the identifiers valid
-    args['job_cache'] = None if parsed.no_job_cache else parsed.job_cache
-    args['use_container'] = parsed.use_container or ((not parsed.no_container) and os.getenv('HITHER_USE_CONTAINER') in ['TRUE', '1'])
-    args['use_slurm'] = parsed.use_slurm
-    args['slurm_max_jobs_per_alloc'] = parsed.slurm_jobs_per_allocation
-    args['slurm_max_simultaneous_allocs'] = parsed.slurm_max_simultaneous_allocations
     # example srun_command: srun --exclusive -n 1 -p <partition>
-    args['slurm_command'] = f"srun -n 1 -p {parsed.slurm_partition} {'--exclusive' if not parsed.slurm_accept_shared_nodes else ''}"
+    slurm_command = f"srun -n 1 -p {parsed.slurm_partition} {'--exclusive' if not parsed.slurm_accept_shared_nodes else ''}"
+    if parsed.slurm_gpus_per_node > 0:
+        slurm_command += f" --gpus-per-node={parsed.slurm_gpus_per_node}"
     if parsed.outfile is not None and parsed.outfile != '' and os.path.exists(parsed.outfile) and parsed.outfile != "/dev/null":
         raise Exception('Error: Requested to write to an existing output file. Aborting to avoid overwriting file.')
     # configure verbosity for the run
-    print_per_verbose.__dict__['verbosity_level'] = args['verbose']
-    return args
+    print_per_verbose.__dict__['verbosity_level'] = parsed.verbose or 0
+
+    # We would very much like to avoid this manual copying, unfortunately the argsparse module and the typing module
+    # don't play at all nicely with each other. Maybe fix this later (keyword TAP/typed arg parser)
+    return StandardArgs(
+        test                          = parsed.test,
+        outfile                       = parsed.outfile,
+        workercount                   = max(parsed.workercount, 1),
+        # As a reminder, argparse converts internal -es to _s to keep the identifiers valid
+        job_cache                     = None if parsed.no_job_cache else parsed.job_cache,
+        use_container                 = parsed.use_container or \
+                                            ((not parsed.no_container) \
+                                             and os.getenv('HITHER_USE_CONTAINER') in ['TRUE', '1']),
+        use_slurm                     = parsed.use_slurm,
+        slurm_max_jobs_per_alloc      = parsed.slurm_jobs_per_allocation,
+        slurm_max_simultaneous_allocs = parsed.slurm_max_simultaneous_allocations,
+        slurm_command                 = slurm_command
+    )
 
 def print_per_verbose(lvl: int, msg: str):
     # verbosity_level is a static value, initialized from command-line argument at setup time in init_configuration().
@@ -142,7 +134,7 @@ def extract_hither_config(args: StandardArgs) -> HitherConfiguration:
     if args['test'] != 0: print(f"\tRunning in TEST MODE--Execution will stop after processing {args['test']} sortings!\n")
 
     if use_container:
-        print_per_verbose(1, f"Using {'Singularity' if os.getenv('use_singularity') else 'Docker'} containers.")
+        print_per_verbose(1, f"Using {'Singularity' if os.getenv('HITHER_USE_SINGULARITY') else 'Docker'} containers.")
     else:
         print_per_verbose(1, "Running without containers.")
     # Define job cache and job handler
@@ -156,12 +148,12 @@ def extract_hither_config(args: StandardArgs) -> HitherConfiguration:
     else:
         jh = hi.ParallelJobHandler(num_workers=args['workercount'])
     log = hi.Log()
-    return {
-        'job_cache': jc,
-        'job_handler': jh,
-        'use_container': use_container,
-        'log': log
-    }
+    return HitherConfiguration(
+        job_cache=jc,
+        job_handler=jh,
+        use_container=use_container,
+        log=log
+    )
     
 def call_cleanup(config: HitherConfiguration) -> None:
     if config['job_handler'] is not None:

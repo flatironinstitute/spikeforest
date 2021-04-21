@@ -57,10 +57,10 @@ def init_configuration():
         'recordingset': '',
     }
     parsed = init_args()
-    std_args = parse_shared_configuration(parsed)
     args['sortingsfile'] = parsed.sortingsfile
     args['recordingset'] = parsed.recordingset
-    if(parsed.check_config):
+    std_args = parse_shared_configuration(parsed)
+    if (parsed.check_config):
         print(f"""Received the following environment vars:
             HITHER_USE_CONTAINER: {os.getenv('HITHER_USE_CONTAINER')}
             HITHER_USE_SINGULARITY: {os.getenv('HITHER_USE_SINGULARITY')}
