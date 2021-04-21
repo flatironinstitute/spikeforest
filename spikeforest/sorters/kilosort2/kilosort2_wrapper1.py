@@ -5,37 +5,35 @@ import kachery_p2p as kp
 
 expected_kilosort2_commit = '1a030bf8ca460899dfc0294005f2f971cf63c9e7'
 
-def get_image(**kwargs):
-    thisdir = os.path.dirname(os.path.realpath(__file__))
+class matlab_license_hook(hi.RuntimeHook):
+    def precontainer(self, context: hi.PreContainerContext):
+        # Matlab license stuff ##########################
+        hither_matlab_lnu_credentials_path = os.getenv('HITHER_MATLAB_LNU_CREDENTIALS_PATH', None)
+        hither_matlab_mlm_license_file = os.getenv('HITHER_MATLAB_MLM_LICENSE_FILE', None)
+        if hither_matlab_lnu_credentials_path:
+            if not os.path.isdir(hither_matlab_lnu_credentials_path):
+                raise Exception(f'No such directory: {hither_matlab_lnu_credentials_path}')
+            context.add_bind_mount(hi.BindMount(source=hither_matlab_lnu_credentials_path, target='/root/.matlab/MathWorks/MATLAB/LNUCredentials', read_only=True))
+        elif hither_matlab_mlm_license_file:
+            context.set_env('MLM_LICENSE_FILE', hither_matlab_mlm_license_file)
+        else:
+            raise Exception('No matlab license specified. Set one of the following environment variables: HITHER_MATLAB_MLM_LICENSE_FILE or HITHER_MATLAB_LNU_CREDENTIALS_PATH.')
+        #################################################
+        
 
-    # Matlab license stuff ##########################
-    bind_mounts: List[hi.BindMount] = []
-    environment: Dict[str, str] = {}
-    hither_matlab_lnu_credentials_path = os.getenv('HITHER_MATLAB_LNU_CREDENTIALS_PATH', None)
-    hither_matlab_mlm_license_file = os.getenv('HITHER_MATLAB_MLM_LICENSE_FILE', None)
-    if hither_matlab_lnu_credentials_path:
-        if not os.path.isdir(hither_matlab_lnu_credentials_path):
-            raise Exception(f'No such directory: {hither_matlab_lnu_credentials_path}')
-        bind_mounts.append(hi.BindMount(source=hither_matlab_lnu_credentials_path, target='/root/.matlab/MathWorks/MATLAB/LNUCredentials', read_only=True))
-    elif hither_matlab_mlm_license_file:
-        environment['MLM_LICENSE_FILE'] = hither_matlab_mlm_license_file
-    else:
-        raise Exception('No matlab license specified. Set one of the following environment variables: HITHER_MATLAB_MLM_LICENSE_FILE or HITHER_MATLAB_LNU_CREDENTIALS_PATH.')
-    #################################################
-    
-    return hi.DockerImageFromScript(
-        name='magland/kilosort2',
-        dockerfile=f'{thisdir}/docker/Dockerfile',
-        bind_mounts=bind_mounts,
-        environment=environment
-    )
+thisdir = os.path.dirname(os.path.realpath(__file__))
+image = hi.DockerImageFromScript(
+    name='magland/kilosort2',
+    dockerfile=f'{thisdir}/docker/Dockerfile'
+)
 
 @hi.function(
     'kilosort2_wrapper1', '0.1.1',
-    image=get_image,
+    image=image,
     modules=['labbox_ephys', 'labbox'],
     kachery_support=True,
-    nvidia_support=True
+    nvidia_support=True,
+    runtime_hooks=[matlab_license_hook()]
 )
 def kilosort2_wrapper1(
     recording_object: dict,
