@@ -2,25 +2,10 @@ import os
 from typing import Dict, List
 import hither2 as hi
 import kachery_p2p as kp
+from spikeforest.sorters._matlab_license_hook import matlab_license_hook
 
 expected_kilosort2_commit = '1a030bf8ca460899dfc0294005f2f971cf63c9e7'
-
-class matlab_license_hook(hi.RuntimeHook):
-    def precontainer(self, context: hi.PreContainerContext):
-        # Matlab license stuff ##########################
-        hither_matlab_lnu_credentials_path = os.getenv('HITHER_MATLAB_LNU_CREDENTIALS_PATH', None)
-        hither_matlab_mlm_license_file = os.getenv('HITHER_MATLAB_MLM_LICENSE_FILE', None)
-        if hither_matlab_lnu_credentials_path:
-            if not os.path.isdir(hither_matlab_lnu_credentials_path):
-                raise Exception(f'No such directory: {hither_matlab_lnu_credentials_path}')
-            context.add_bind_mount(hi.BindMount(source=hither_matlab_lnu_credentials_path, target='/root/.matlab/MathWorks/MATLAB/LNUCredentials', read_only=True))
-        elif hither_matlab_mlm_license_file:
-            context.set_env('MLM_LICENSE_FILE', hither_matlab_mlm_license_file)
-        else:
-            raise Exception('No matlab license specified. Set one of the following environment variables: HITHER_MATLAB_MLM_LICENSE_FILE or HITHER_MATLAB_LNU_CREDENTIALS_PATH.')
-        #################################################
         
-
 thisdir = os.path.dirname(os.path.realpath(__file__))
 image = hi.DockerImageFromScript(
     name='magland/kilosort2',

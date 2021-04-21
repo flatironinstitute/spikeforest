@@ -2,7 +2,7 @@ import os
 from typing import Dict, List
 import hither2 as hi
 import kachery_p2p as kp
-from ..kilosort2.kilosort2_wrapper1 import matlab_license_hook
+from spikeforest.sorters._matlab_license_hook import matlab_license_hook
 
 expected_kilosort3_commit = 'a1fccd9abf13ce5dc3340fae8050f9b1d0f8ab7a'
     
@@ -15,7 +15,7 @@ image = hi.DockerImageFromScript(
 @hi.function(
     'kilosort3_wrapper1', '0.1.1',
     image=image,
-    modules=['labbox_ephys', 'labbox'],
+    modules=['labbox_ephys', 'labbox', 'spikeforest'],
     kachery_support=True,
     nvidia_support=True,
     runtime_hooks=[matlab_license_hook()]
