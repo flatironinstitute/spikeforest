@@ -1,3 +1,4 @@
+import os
 import hither2 as hi
 
 class matlab_license_hook(hi.RuntimeHook):
