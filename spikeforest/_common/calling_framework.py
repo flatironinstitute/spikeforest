@@ -43,7 +43,8 @@ def add_standard_args(parser: Any) -> Any:
     Returns:
         (Any): Formally untyped, this function returns the result of calling parser.parse_args().
     """
-    parser.add_argument('--verbose', '-v', action='count', default=0)
+    parser.add_argument('--verbose', '-v', action='count', default=0,
+        help="Set verbosity level. Add vs for more verbosity.")
     # Note: Whatever 'number of iterations' means for your application should be locally defined.
     parser.add_argument('--test', '-t', action='store', type=int, default=0,
         help="If non-zero, this will set a maximum number of iterations before quitting, " +
@@ -53,29 +54,29 @@ def add_standard_args(parser: Any) -> Any:
              'Any existing file will NOT be overwritten; the program will abort instead.')
     parser.add_argument('--workercount', '-w', action='store', type=int, default=4,
         help="If set, determines the number of worker threads for a parallel job handler. Ignored if using slurm.")
-    parser.add_argument('--job_cache', action='store', type=str, default='default-job-cache',
+    parser.add_argument('--job-cache', action='store', type=str, default='default-job-cache',
         help="If set, indicates the feed name for the job cache feed.")
-    parser.add_argument('--no_job_cache', action='store_true', default=False,
+    parser.add_argument('--no-job-cache', action='store_true', default=False,
         help="If set, job cache will not be used, and any value for --job_cache will be ignored.")
-    parser.add_argument('--use_container', '-C', action='store_true', default=False,
+    parser.add_argument('--use-container', '-C', action='store_true', default=False,
         help='If set, hither calls will use containerization. If unset, containerization may still be used if ' +
         'environment variable HITHER_USE_CONTAINER is set to "1" or "TRUE".')
-    parser.add_argument('--no_container', action='store_true', default=False,
+    parser.add_argument('--no-container', action='store_true', default=False,
         help='Override HITHER_USE_CONTAINER environment variable to suppress container use. Ignored if --use_container is set.')
-    parser.add_argument('--use_slurm', action='store_true', default=False,
+    parser.add_argument('--use-slurm', action='store_true', default=False,
         help='If set, this script will use a SlurmJobHandler and attempt to run jobs on the configured cluster. The exact ' +
         'call used by the slurm job handler to acquire resources can be customized with command-line arguments.')
-    parser.add_argument('--slurm_partition', action='store', type=str, default="ccm",
+    parser.add_argument('--slurm-partition', action='store', type=str, default="ccm",
         help='If set, slurm will use the specified text as a partition name to request. Note that slurm must be explicitly ' +
-        'requested with the --use_slurm flag; if it is not, this value is ignored.')
-    parser.add_argument('--slurm_accept_shared_nodes', action='store_true', default=False,
+        'requested with the --use-slurm flag; if it is not, this value is ignored.')
+    parser.add_argument('--slurm-accept-shared-nodes', action='store_true', default=False,
         help='If set, slurm calls will be made without --exclusive. Note that slurm must still be explicitly ' +
-        'requested with the --use_slurm flag; if it is not, this value is ignored.')
-    parser.add_argument('--slurm_jobs_per_allocation', action='store', type=int, default=6,
+        'requested with the --use-slurm flag; if it is not, this value is ignored.')
+    parser.add_argument('--slurm-jobs-per-allocation', action='store', type=int, default=6,
         help='Controls the max length of job processing queues for slurm nodes. Default 6.')
-    parser.add_argument('--slurm_max_simultaneous_allocations', action='store', type=int, default=5,
+    parser.add_argument('--slurm-max-simultaneous-allocations', action='store', type=int, default=5,
         help='The maximum number of job processing queues/slurm nodes to be requested. Default 5.')
-    parser.add_argument('--check_config', action='store_true', default=False,
+    parser.add_argument('--check-config', action='store_true', default=False,
         help='Debugging tool. If set, program will simply quit with a description of the parsed configuration.')
     parsed = parser.parse_args()
     return parsed
@@ -113,6 +114,7 @@ def parse_shared_configuration(parsed: Any):
     args['test'] = parsed.test
     args['outfile'] = parsed.outfile
     args['workercount'] = max(parsed.workercount, 1)
+    # As a reminder, argparse converts internal -es to _s to keep the identifiers valid
     args['job_cache'] = None if parsed.no_job_cache else parsed.job_cache
     args['use_container'] = parsed.use_container or ((not parsed.no_container) and os.getenv('HITHER_USE_CONTAINER') in ['TRUE', '1'])
     args['use_slurm'] = parsed.use_slurm
