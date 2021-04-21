@@ -20,7 +20,9 @@ import labbox_ephys as le
 KNOWN_SORTERS = {
     'SpykingCircus': sf.spykingcircus_wrapper1,
     'MountainSort4': sf.mountainsort4_wrapper1,
-    'Tridesclous':  sf.tridesclous_wrapper1
+    'Tridesclous':   sf.tridesclous_wrapper1,
+    'Kilosort2':     sf.kilosort2_wrapper1,
+    'Kilosort3':     sf.kilosort3_wrapper1,
 }
 
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
@@ -231,13 +233,14 @@ def make_output_record(job: SortingJob) -> str:
     else:
         sorting = le.LabboxEphysSortingExtractor(job.sorting_job.result.return_value)
         stored_sorting = le.LabboxEphysSortingExtractor.store_sorting(sorting)
+    console = kp.store_json(job.sorting_job._console_lines)
     # TODO: Get console out, cpu time, start/end times from hither!!
     record: OutputRecord = {
         'recordingName': job.recording_name,
         'studyName': job.study_name,
         'sorterName': job.sorter_name,
         'sortingParameters': job.params,
-        'consoleOutUri': "TODO", # TODO
+        'consoleOutUri': console,
         'cpuTimeSec': -0.5, # TODO
         'errored': errored,
         'startTime': "BEGINNING", # TODO
