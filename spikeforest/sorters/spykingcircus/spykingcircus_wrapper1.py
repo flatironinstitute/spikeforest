@@ -4,6 +4,8 @@ import kachery_p2p as kp
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 
+DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
+
 @hi.function(
     'spykingcircus_wrapper1', '0.1.0',
     image=hi.DockerImageFromScript(name='magland/spyking-circus', dockerfile=f'{thisdir}/docker/Dockerfile'),
@@ -24,11 +26,12 @@ def spykingcircus_wrapper1(
 ) -> dict:
     import labbox_ephys as le
     import spikesorters as ss
+    from datetime import datetime
 
     recording = le.LabboxEphysRecordingExtractor(recording_object)
     
     # Sorting
-    print('Sorting...')
+    print('BEGINNING SpyKingCircus sort: ' + datetime.now().strftime(DATE_FORMAT))
     with kp.TemporaryDirectory(prefix='tmp_spykingcircus') as tmpdir:
         sorter = ss.SpykingcircusSorter(
             recording=recording,
@@ -53,5 +56,6 @@ def spykingcircus_wrapper1(
         timer = sorter.run()
         print('#SF-SORTER-RUNTIME#{:.3f}#'.format(timer))
         sorting = sorter.get_result()
+        print('COMPLETED SpyKingCircus sort: ' + datetime.now().strftime(DATE_FORMAT))
 
         return le.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)

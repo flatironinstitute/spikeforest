@@ -1,22 +1,23 @@
 #!/usr/bin/python
 
 import argparse
+from datetime import datetime
 import json
 import os
-from spikeforest._common.calling_framework import StandardArgs, add_standard_args, call_cleanup, extract_hither_config, parse_shared_configuration
-from datetime import datetime
+import re
 from typing import Any, Dict, List, NamedTuple, Tuple, TypedDict, Union
 import yaml
 
+from spikeforest._common.calling_framework import StandardArgs, add_standard_args, call_cleanup, extract_hither_config, parse_shared_configuration
 import spikeextractors as se
 import spikeforest as sf
 import hither2 as hi
 import kachery_p2p as kp
 import labbox_ephys as le
 
-# Maps sorter names as they appear in the spec file to the
+# Maps the sorter names (as they appear in the spec file) to the
 # wrapper functions exposed by this package.
-# In the event a new sorter is added, a corresponding entry should be added here.
+# If a new sorter is added, a corresponding entry should be added here.
 KNOWN_SORTERS = {
     'SpykingCircus': sf.spykingcircus_wrapper1,
     'MountainSort4': sf.mountainsort4_wrapper1,
@@ -53,11 +54,8 @@ class SortingJob(NamedTuple):
     sorter_name: str
     params: Any
     sorting_job: hi.Job
-    # console_out_uri: str
-    # sorting_output: str
-    # cpu_time_sec: float    # TODO -- should come from hither?
 
-# We want to keep this as a dict because we want to JSON-serialize it!
+# TypedDict is JSON-serializable, while NamedTuple isn't
 class OutputRecord(TypedDict):
     recordingName: str
     studyName: str
@@ -88,7 +86,6 @@ def init_configuration():
         args['study_source_file'] = parsed.study_source_file
     else:
         with open(args['sorter_spec_file']) as file:
-            # See if this works, might need to use full_load
             spec_yaml = yaml.safe_load(file)
             args['study_source_file'] = spec_yaml['studysets']
     if not os.path.exists(args['study_source_file']):
@@ -119,7 +116,6 @@ def init_args():
 
 def parse_sorters(spec_filename: str, known_study_sets: List[str]) -> Dict[str, Tuple[SorterRecord, List[str]]]:
     with open(spec_filename) as file:
-        # See if this works, might need to use full_load
         spec_yaml = yaml.safe_load(file)
     expected_study_sets = { i : i for i in spec_yaml['studyset_names'] }
     missing_sets = list(filter(lambda s: s not in known_study_sets, expected_study_sets))
@@ -190,11 +186,9 @@ def make_study_records_from_studyset(study_set: Any) -> List[StudyRecord]:
 # [For each sorter-recording pair]:
 # {
 #     "_id": <arbitrary hex string>,
-# o   "recordingName": "20160415_patch2", --> comes from study list
-# o   "studyName": "paired_mea64c", --> comes from study list
+#     "recordingName": "20160415_patch2", --> comes from study list
+#     "studyName": "paired_mea64c", --> comes from study list
 #     "sorterName": "HerdingSpikes2", --> ith sorter name
-# x   "processorName": "herdingspikes2", --> also comes from sorter list   --> Ditch this
-# x   "processorVersion": "0.3.7-w1", --> also comes from sorter list      --> Ditch this
 #     "sortingParameters": {}, --> also comes from sorter list
 # ---
 #     "consoleOut": "sha1://aec68278bde6695224890000f1db8bd449964c65/file.txt", --> running the sorter
@@ -204,15 +198,13 @@ def make_study_records_from_studyset(study_set: Any) -> List[StudyRecord]:
 # x   "container": "docker://magland/sf-herdingspikes2:0.3.2", --> comes from running the sorter
 #        --> Or maybe this is an 'image' field that isn't part of the console out? Methodological issues??
 #     "cpuTimeSec": 92.18, --> running sorter
-# x   "returnCode": 0, --> Ditch this: replace with status field that indicates a failure.
 #     "timedOut": false, --> running sorter. How do we know?
 #                        --> A: We don't right now, it's pending. It'll be supported in the next hither
 #     "startTime": "2020-02-25T17:07:47.394880", --> running sorter
 #     "endTime": "2020-02-25T17:09:32.901005", --> running sorter
 #           --> change 'firings' to 'sortingOutputUri'
 #     "firings": "sha1://0d1ae184564d358ace078c645026583fbb3d6fba/0d1ae184564d358ace078c645026583fbb3d6fba", --> sorter
-# x   "__v": 0, --> Can get rid of this entirely
-#   ---> These 2 are just echoing the input list
+# ---> These 2 are just echoing the input list
 #     "recordingUri": "sha1://05536d7a37efb3f5f2ca42c987964f199305f480/20160415_patch2.json",
 #     "sortingTrueUri": "sha1://71eea1fbe545bacf12884711baab387dce7160e1/20160415_patch2.firings_true.json"
 # }
@@ -226,14 +218,6 @@ def queue_sort(sorter: SorterRecord, recording: RecordingRecord) -> hi.Job:
         'recording_object': base_recording.object()
     }
     return hi.Job(sort_fn, params)
-    # sorting = le.LabboxEphysSortingExtractor(sorting_object)
-
-    # return SortingResult(
-    #     console_out_uri    = "FIXME",  # TODO
-    #     sorting_output     = le.LabboxEphysSortingExtractor.store_sorting(sorting),
-    #     cpu_time_sec       = -5,       # TODO
-    #     errored            = False     # TODO
-    # )
 
 
 def make_output_record(job: SortingJob) -> str:
@@ -244,17 +228,26 @@ def make_output_record(job: SortingJob) -> str:
         sorting = le.LabboxEphysSortingExtractor(job.sorting_job.result.return_value)
         stored_sorting = le.LabboxEphysSortingExtractor.store_sorting(sorting)
     console = kp.store_json(job.sorting_job._console_lines)
-    # TODO: Get console out, cpu time, start/end times from hither!!
+    first_out = job.sorting_job._console_lines[0]
+    last_out = job.sorting_job._console_lines[-1]
+
+    time_pattern = re.compile('(BEGINNING|COMPLETED) (\S*) sort: (.*)$')
+    match = time_pattern.match(first_out['text'])
+    start_time = match.group(3) or "START TIME PATTERN FAILED"
+    match = time_pattern.match(last_out['text'])
+    end_time = match.group(3) or "END TIME PATTERN FAILED"
+
+    cpu_elapsed = last_out["timestamp"] - first_out["timestamp"]
     record: OutputRecord = {
         'recordingName': job.recording_name,
         'studyName': job.study_name,
         'sorterName': job.sorter_name,
         'sortingParameters': job.params,
         'consoleOutUri': console,
-        'cpuTimeSec': -0.5, # TODO
+        'cpuTimeSec': cpu_elapsed,
         'errored': errored,
-        'startTime': "BEGINNING", # TODO
-        'endTime': "END", # TODO
+        'startTime': start_time,
+        'endTime': end_time,
         'sortingOutput': stored_sorting,
         'recordingUri': job.recording_uri,
         'groundTruthUri': job.ground_truth_uri
@@ -271,7 +264,6 @@ def output_records(results: List[str], std_args: StandardArgs):
 def sorting_loop(sorting_matrix: Dict[str, Tuple[SorterRecord, List[str]]],
                  study_sets: Dict[str, List[StudyRecord]],
                 ) -> List[SortingJob]:
-    # THIS SHOULD NOT *JUST* BE THE JOB BUT ALSO THE PER-JOB STUFF YOU CARE ABOUT!!!!!
     jobs: List[SortingJob] = []
     for sorter_name in sorting_matrix.keys():
         (sorter, study_set_names) = sorting_matrix[sorter_name]
@@ -279,8 +271,6 @@ def sorting_loop(sorting_matrix: Dict[str, Tuple[SorterRecord, List[str]]],
             study_set = study_sets[name]
             for study in study_set:
                 for recording in study.recordings:
-                    # start_time = datetime.now().strftime(DATE_FORMAT)
-                    # end_time = datetime.now().strftime(DATE_FORMAT)
                     jobs.append(SortingJob(
                         recording_name   = recording.recording_name,
                         recording_uri    = recording.recording_uri,
@@ -289,10 +279,6 @@ def sorting_loop(sorting_matrix: Dict[str, Tuple[SorterRecord, List[str]]],
                         sorter_name      = sorter.sorter_name,
                         params           = {},
                         sorting_job      = queue_sort(sorter, recording),
-                        # console_out_uri  = 'PENDING',
-                        # sorting_output   = 'PENDING',
-                        # cpu_time_sec     = -5.0,
-                        # errored          = False
                     ))
     return jobs
 
@@ -314,4 +300,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    #test()
