@@ -8,7 +8,7 @@ thisdir = os.path.dirname(os.path.realpath(__file__))
 @hi.function(
     'mountainsort4_wrapper1', '0.1.0',
     image=hi.DockerImageFromScript(name='magland/mountainsort4', dockerfile=f'{thisdir}/docker/Dockerfile'),
-    modules=['labbox_ephys', 'labbox'],
+    modules=['labbox_ephys', 'labbox', 'spikeforest'],
     kachery_support=True
 )
 def mountainsort4_wrapper1(
