@@ -4,8 +4,6 @@ import kachery_p2p as kp
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 
-DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
-
 @hi.function(
     'spykingcircus_wrapper1', '0.1.1',
     image=hi.DockerImageFromScript(name='magland/spyking-circus', dockerfile=f'{thisdir}/docker/Dockerfile'),
@@ -31,6 +29,7 @@ def spykingcircus_wrapper1(
     recording = le.LabboxEphysRecordingExtractor(recording_object)
     
     # Sorting
+    DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
     print('BEGINNING SpyKingCircus sort: ' + datetime.now().strftime(DATE_FORMAT))
     with kp.TemporaryDirectory(prefix='tmp_spykingcircus') as tmpdir:
         sorter = ss.SpykingcircusSorter(

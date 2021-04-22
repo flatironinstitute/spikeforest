@@ -232,10 +232,10 @@ def make_output_record(job: SortingJob) -> str:
     last_out = job.sorting_job._console_lines[-1]
 
     time_pattern = re.compile('(BEGINNING|COMPLETED) (\S*) sort: (.*)$')
-    match = time_pattern.match(first_out['text'])
-    start_time = match.group(3) or "START TIME PATTERN FAILED"
-    match = time_pattern.match(last_out['text'])
-    end_time = match.group(3) or "END TIME PATTERN FAILED"
+    m = time_pattern.match(first_out['text'])
+    start_time = m.group(3) if m and m.group(3) else "START TIME PATTERN FAILED"
+    m = time_pattern.match(last_out['text'])
+    end_time = m.group(3) if m and m.group(3) else "END TIME PATTERN FAILED"
 
     cpu_elapsed = last_out["timestamp"] - first_out["timestamp"]
     record: OutputRecord = {
