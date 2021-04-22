@@ -8,7 +8,7 @@ import re
 from typing import Any, Dict, List, NamedTuple, Tuple, TypedDict, Union
 import yaml
 
-from spikeforest._common.calling_framework import StandardArgs, add_standard_args, call_cleanup, extract_hither_config, parse_shared_configuration
+from spikeforest._common.calling_framework import StandardArgs, add_standard_args, call_cleanup, extract_hither_config, parse_shared_configuration, print_per_verbose
 import spikeextractors as se
 import spikeforest as sf
 import hither2 as hi
@@ -232,8 +232,10 @@ def make_output_record(job: SortingJob) -> str:
     last_out = job.sorting_job._console_lines[-1]
 
     time_pattern = re.compile('(BEGINNING|COMPLETED) (\S*) sort: (.*)$')
+    print_per_verbose(3, f"First-out: {first_out['text']}")
     m = time_pattern.match(first_out['text'])
     start_time = m.group(3) if m and m.group(3) else "START TIME PATTERN FAILED"
+    print_per_verbose(3, f"First-out: {last_out['text']}")
     m = time_pattern.match(last_out['text'])
     end_time = m.group(3) if m and m.group(3) else "END TIME PATTERN FAILED"
 
