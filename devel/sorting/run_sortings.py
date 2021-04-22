@@ -235,7 +235,7 @@ def make_output_record(job: SortingJob) -> str:
     print_per_verbose(3, f"First-out: {first_out['text']}")
     m = time_pattern.match(first_out['text'])
     start_time = m.group(3) if m and m.group(3) else "START TIME PATTERN FAILED"
-    print_per_verbose(3, f"First-out: {last_out['text']}")
+    print_per_verbose(3, f"Lasst-out: {last_out['text']}")
     m = time_pattern.match(last_out['text'])
     end_time = m.group(3) if m and m.group(3) else "END TIME PATTERN FAILED"
 

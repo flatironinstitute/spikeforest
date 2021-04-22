@@ -5,7 +5,7 @@ import kachery_p2p as kp
 thisdir = os.path.dirname(os.path.realpath(__file__))
 
 @hi.function(
-    'spykingcircus_wrapper1', '0.1.1',
+    'spykingcircus_wrapper1', '0.1.2',
     image=hi.DockerImageFromScript(name='magland/spyking-circus', dockerfile=f'{thisdir}/docker/Dockerfile'),
     modules=['labbox_ephys', 'labbox', 'spikeforest'],
     kachery_support=True
