@@ -7,7 +7,7 @@ thisdir = os.path.dirname(os.path.realpath(__file__))
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
 @hi.function(
-    'spykingcircus_wrapper1', '0.1.0',
+    'spykingcircus_wrapper1', '0.1.1',
     image=hi.DockerImageFromScript(name='magland/spyking-circus', dockerfile=f'{thisdir}/docker/Dockerfile'),
     modules=['labbox_ephys', 'labbox', 'spikeforest'],
     kachery_support=True
