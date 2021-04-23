@@ -9,6 +9,7 @@ import hither2 as hi
 # NamedTuple is probably cleaner, but keeping a dict is more convenient for screen output.
 class StandardArgs(TypedDict):
     test: int
+    timeout_min: int
     outfile: str
     workercount: int
     job_cache: Union[str, None]
@@ -32,9 +33,9 @@ SORTING_FIRINGS_URI_KEY = 'firings'
 def add_standard_args(parser: Any) -> Any:
     """Adds standard command-line arguments for interacting with hither/slurm calling conventions.
     Included arguments are --verbose (-v|vv|vvv...), --test (-t), --outfile (-o), --workercount (-w),
-    --job_cache, --no_job_cache, --use_container, --no_container, --use_slurm, --slurm_partition,
-    --slurm_accept_shared_nodes, --slurm_jobs_per_allocation, --slurm_max_simultaneous_allocations,
-    and --check_config.
+    --job-cache, --no-job-cache, --use-container, --no-container, --use-slurm, --slurm-partition,
+    --slurm-accept-shared-nodes, --slurm-jobs-per-allocation, --slurm-max-simultaneous-allocations,
+    --slurm-gpus-per-node, --timeout-min, and --check-config.
 
     Args:
         parser (Any): An initialized argparse ArgumentParser to extend.
@@ -48,6 +49,8 @@ def add_standard_args(parser: Any) -> Any:
     parser.add_argument('--test', '-t', action='store', type=int, default=0,
         help="If non-zero, this will set a maximum number of iterations before quitting, " +
         "to give a usable sample without processing the entire data set.")
+    parser.add_argument('--timeout-min', '-T', action='store', type=int, default=0,
+        help="If non-zero, this will set a maximum duration for any job before it is cancelled.")
     parser.add_argument('--outfile', '-o', action='store', default=None,
         help='If set, output (but not warnings/messages) will be written to this file (instead of to STDOUT). ' +
              'Any existing file will NOT be overwritten; the program will abort instead.')
@@ -56,12 +59,12 @@ def add_standard_args(parser: Any) -> Any:
     parser.add_argument('--job-cache', action='store', type=str, default='default-job-cache',
         help="If set, indicates the feed name for the job cache feed.")
     parser.add_argument('--no-job-cache', action='store_true', default=False,
-        help="If set, job cache will not be used, and any value for --job_cache will be ignored.")
+        help="If set, job cache will not be used, and any value for --job-cache will be ignored.")
     parser.add_argument('--use-container', '-C', action='store_true', default=False,
         help='If set, hither calls will use containerization. If unset, containerization may still be used if ' +
         'environment variable HITHER_USE_CONTAINER is set to "1" or "TRUE".')
     parser.add_argument('--no-container', action='store_true', default=False,
-        help='Override HITHER_USE_CONTAINER environment variable to suppress container use. Ignored if --use_container is set.')
+        help='Override HITHER_USE_CONTAINER environment variable to suppress container use. Ignored if --use-container is set.')
     parser.add_argument('--use-slurm', action='store_true', default=False,
         help='If set, this script will use a SlurmJobHandler and attempt to run jobs on the configured cluster. The exact ' +
         'call used by the slurm job handler to acquire resources can be customized with command-line arguments.')
@@ -108,6 +111,7 @@ def parse_shared_configuration(parsed: Any):
     # don't play at all nicely with each other. Maybe fix this later (keyword TAP/typed arg parser)
     return StandardArgs(
         test                          = parsed.test,
+        timeout_min                   = parsed.timeout_min,
         outfile                       = parsed.outfile,
         workercount                   = max(parsed.workercount, 1),
         # As a reminder, argparse converts internal -es to _s to keep the identifiers valid
@@ -121,7 +125,7 @@ def parse_shared_configuration(parsed: Any):
         slurm_command                 = slurm_command
     )
 
-# TODO: print_per_verbose, _fmt_time both belong in a different file
+# TODO: print_per_verbose, _fmt_time belong in a different file?
 def print_per_verbose(lvl: int, msg: str):
     # verbosity_level is a static value, initialized from command-line argument at setup time in init_configuration().
     # This does not play nicely with containerization, but global arguments variables don't either; rather than passing
@@ -154,10 +158,12 @@ def extract_hither_config(args: StandardArgs) -> HitherConfiguration:
     else:
         jh = hi.ParallelJobHandler(num_workers=args['workercount'])
     log = hi.Log()
+    timeout_sec = None if args['timeout_min'] == 0 else 60 * args['timeout_min']
     return HitherConfiguration(
         job_cache=jc,
         job_handler=jh,
         use_container=use_container,
+        job_timeout_sec=timeout_sec,
         log=log
     )
     
