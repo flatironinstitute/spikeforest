@@ -4,11 +4,21 @@ import kachery_p2p as kp
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 
+class num_workers_hook(hi.RuntimeHook):
+    def precontainer(self, context: hi.PreContainerContext):
+        # context.kwargs can also be used to pull in variable values
+        # setting environment variables to ensure we are using only one thread
+        context.set_env('NUM_WORKERS', '1')
+        context.set_env('MKL_NUM_THREADS', '1')
+        context.set_env('NUMEXPR_NUM_THREADS', '1')
+        context.set_env('OMP_NUM_THREADS', '1')
+
 @hi.function(
-    'spykingcircus_wrapper1', '0.1.3',
+    'spykingcircus_wrapper1', '0.1.4',
     image=hi.DockerImageFromScript(name='magland/spyking-circus', dockerfile=f'{thisdir}/docker/Dockerfile'),
     modules=['labbox_ephys', 'labbox', 'spikeforest'],
-    kachery_support=True
+    kachery_support=True,
+    runtime_hooks=[num_workers_hook()]
 )
 def spykingcircus_wrapper1(
     recording_object: dict,
@@ -24,13 +34,10 @@ def spykingcircus_wrapper1(
 ) -> dict:
     import labbox_ephys as le
     import spikesorters as ss
-    from datetime import datetime
 
     recording = le.LabboxEphysRecordingExtractor(recording_object)
     
     # Sorting
-    DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
-    print('BEGINNING SpyKingCircus sort: ' + datetime.now().strftime(DATE_FORMAT))
     with kp.TemporaryDirectory(prefix='tmp_spykingcircus') as tmpdir:
         sorter = ss.SpykingcircusSorter(
             recording=recording,
@@ -55,7 +62,5 @@ def spykingcircus_wrapper1(
         timer = sorter.run()
         print('#SF-SORTER-RUNTIME#{:.3f}#'.format(timer))
         sorting = sorter.get_result()
-        print('COMPLETED SpyKingCircus sort: ' + datetime.now().strftime(DATE_FORMAT))
-        print('Final test')
 
         return le.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)

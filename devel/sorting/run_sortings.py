@@ -4,11 +4,10 @@ import argparse
 from datetime import datetime
 import json
 import os
-import re
 from typing import Any, Dict, List, NamedTuple, Tuple, TypedDict, Union
 import yaml
 
-from spikeforest._common.calling_framework import StandardArgs, add_standard_args, call_cleanup, extract_hither_config, parse_shared_configuration, print_per_verbose
+from spikeforest._common.calling_framework import StandardArgs, add_standard_args, call_cleanup, extract_hither_config, _fmt_time, parse_shared_configuration, print_per_verbose
 import spikeextractors as se
 import spikeforest as sf
 import hither2 as hi
@@ -228,28 +227,21 @@ def make_output_record(job: SortingJob) -> str:
         sorting = le.LabboxEphysSortingExtractor(job.sorting_job.result.return_value)
         stored_sorting = le.LabboxEphysSortingExtractor.store_sorting(sorting)
     console = kp.store_json(job.sorting_job._console_lines)
-    first_out = job.sorting_job._console_lines[0]
-    last_out = job.sorting_job._console_lines[-1]
+    try:
+        elapsed = job.sorting_job.timestamp_completed - job.sorting_job.timestamp_started
+    except:
+        elapsed = 0.0
 
-    time_pattern = re.compile('(BEGINNING|COMPLETED) (\S*) sort: (.*)$')
-    print_per_verbose(3, f"First-out: {first_out['text']}")
-    m = time_pattern.match(first_out['text'])
-    start_time = m.group(3) if m and m.group(3) else "START TIME PATTERN FAILED"
-    print_per_verbose(3, f"Lasst-out: {last_out['text']}")
-    m = time_pattern.match(last_out['text'])
-    end_time = m.group(3) if m and m.group(3) else "END TIME PATTERN FAILED"
-
-    cpu_elapsed = last_out["timestamp"] - first_out["timestamp"]
     record: OutputRecord = {
         'recordingName': job.recording_name,
         'studyName': job.study_name,
         'sorterName': job.sorter_name,
         'sortingParameters': job.params,
         'consoleOutUri': console,
-        'cpuTimeSec': cpu_elapsed,
+        'cpuTimeSec': elapsed,
         'errored': errored,
-        'startTime': start_time,
-        'endTime': end_time,
+        'startTime': _fmt_time(job.sorting_job.timestamp_started),
+        'endTime': _fmt_time(job.sorting_job.timestamp_completed),
         'sortingOutput': stored_sorting,
         'recordingUri': job.recording_uri,
         'groundTruthUri': job.ground_truth_uri

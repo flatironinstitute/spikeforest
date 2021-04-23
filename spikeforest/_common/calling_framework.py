@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import datetime
 import os
 from typing import Any, TypedDict, NamedTuple, Union
 import hither2 as hi
@@ -120,6 +121,7 @@ def parse_shared_configuration(parsed: Any):
         slurm_command                 = slurm_command
     )
 
+# TODO: print_per_verbose, _fmt_time both belong in a different file
 def print_per_verbose(lvl: int, msg: str):
     # verbosity_level is a static value, initialized from command-line argument at setup time in init_configuration().
     # This does not play nicely with containerization, but global arguments variables don't either; rather than passing
@@ -128,6 +130,10 @@ def print_per_verbose(lvl: int, msg: str):
     if (print_per_verbose.verbosity_level < lvl): return
     tabs = max(0, lvl - 1)
     print("\t" * tabs + msg)
+
+def _fmt_time(t: Union[float, None]):
+    if not t: return 'TIME NOT SPECIFIED'
+    return datetime.datetime.fromtimestamp(t).isoformat()
 
 def extract_hither_config(args: StandardArgs) -> HitherConfiguration:
     use_container = args['use_container']
