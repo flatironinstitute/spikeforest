@@ -232,6 +232,8 @@ def make_output_record(job: SortingJob) -> str:
     except:
         elapsed = 0.0
 
+    print_per_verbose(3, f"sorting_job: {json.dumps(job.sorting_job, indent=4)}")
+
     record: OutputRecord = {
         'recordingName': job.recording_name,
         'studyName': job.study_name,
