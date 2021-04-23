@@ -5,7 +5,7 @@ import kachery_p2p as kp
 thisdir = os.path.dirname(os.path.realpath(__file__))
 
 @hi.function(
-    'spykingcircus_wrapper1', '0.1.2',
+    'spykingcircus_wrapper1', '0.1.3',
     image=hi.DockerImageFromScript(name='magland/spyking-circus', dockerfile=f'{thisdir}/docker/Dockerfile'),
     modules=['labbox_ephys', 'labbox', 'spikeforest'],
     kachery_support=True
@@ -56,5 +56,6 @@ def spykingcircus_wrapper1(
         print('#SF-SORTER-RUNTIME#{:.3f}#'.format(timer))
         sorting = sorter.get_result()
         print('COMPLETED SpyKingCircus sort: ' + datetime.now().strftime(DATE_FORMAT))
+        print('Final test')
 
         return le.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)
