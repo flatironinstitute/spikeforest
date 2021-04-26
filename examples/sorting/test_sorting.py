@@ -1,6 +1,7 @@
+from typing import Union
 import hither2 as hi
 
-def test_sorting(sorter_func):
+def test_sorting(sorter_func, *, show_console=True, job_handler: Union[None, hi.JobHandler]=None):
     import labbox_ephys as le
 
     recording_name = 'paired_kampff/2014_11_25_Pair_3_0'
@@ -20,7 +21,7 @@ def test_sorting(sorter_func):
     spike_train = sorting_true.get_unit_spike_train(unit_id=unit_ids[0])
     print(f'Unit {unit_ids[0]} has {len(spike_train)} events')
 
-    with hi.Config(use_container=True, show_console=True):
+    with hi.Config(use_container=True, show_console=show_console, job_handler=job_handler):
         sorting_object = hi.Job(sorter_func, {
             'recording_object': recording.object()
         }).wait().return_value
