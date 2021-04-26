@@ -232,7 +232,9 @@ def make_output_record(job: SortingJob) -> str:
     except:
         elapsed = 0.0
 
-    print_per_verbose(3, f"sorting_job: {json.dumps(job.sorting_job, indent=4)}")
+    # Can't do this--sorting_job is not json-serializable.
+    # TODO: Implement a __str__ method for hi2.Job
+    # print_per_verbose(3, f"sorting_job: {json.dumps(job.sorting_job, indent=4)}")
 
     record: OutputRecord = {
         'recordingName': job.recording_name,

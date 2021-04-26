@@ -164,6 +164,7 @@ def extract_hither_config(args: StandardArgs) -> HitherConfiguration:
         job_handler=jh,
         use_container=use_container,
         job_timeout_sec=timeout_sec,
+        show_console=True,
         log=log
     )
     
