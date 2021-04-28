@@ -184,7 +184,6 @@ def make_study_records_from_studyset(study_set: Any) -> List[StudyRecord]:
 # This format is:
 # [For each sorter-recording pair]:
 # {
-#     "_id": <arbitrary hex string>,
 #     "recordingName": "20160415_patch2", --> comes from study list
 #     "studyName": "paired_mea64c", --> comes from study list
 #     "sorterName": "HerdingSpikes2", --> ith sorter name
