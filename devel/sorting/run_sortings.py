@@ -255,9 +255,9 @@ def output_records(results: List[str], std_args: StandardArgs):
 
     if std_args['outfile'] is not None and std_args['outfile'] != '':
         with open(std_args['outfile'], "a") as file:
-            json.dump(results, file)
+            json.dump(results, file, indent=2)
     else:
-        print(json.dumps(results))
+        print(json.dumps(results, indent=4))
 
 def sorting_loop(sorting_matrix: Dict[str, Tuple[SorterRecord, List[str]]],
                  study_sets: Dict[str, List[StudyRecord]],
