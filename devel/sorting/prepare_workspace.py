@@ -81,9 +81,9 @@ def parse_sortings(sortings: Any) -> List[RecordingSet]:
                 sorting_true_uri = s['groundTruthUri'],
                 sortings         = []
             )
-        if 'firings' not in s: continue # when the underlying job errored
-        recording_records[s['recordingName']].sortings.append(SortingTuple(
-            uri   = s['firings'],
+        if 'sortingOutput' not in s: continue # when the underlying job errored
+        recording_records[s['sortingOutput']].sortings.append(SortingTuple(
+            uri   = s['sortingOutput']['data']['h5_path'],
             label = f"{s['sorterName']}--{s['recordingName']}"
         ))
     return [recording_records[k] for k in recording_records.keys()]
