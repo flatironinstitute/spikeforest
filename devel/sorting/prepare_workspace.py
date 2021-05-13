@@ -92,6 +92,7 @@ def main():
     (workspace_uri, sortings_json, dry_run) = init()
     if not dry_run:
         workspace = le.load_workspace(workspace_uri)
+        workspace_uri = workspace.get_uri()
     recording_sets = parse_sortings(sortings_json)
     for r in recording_sets:
         recording = le.LabboxEphysRecordingExtractor(r.recording_uri, download=True)
@@ -113,7 +114,7 @@ def main():
                         label=s.label)
                      for s in r.sortings]
             # TODO: Something useful with these returned ids? Error check?
-    print(f"Loaded {len(recording_sets)} recording sets to workspace {workspace.get_uri}")
+    print(f"Loaded {len(recording_sets)} recording sets to workspace {workspace_uri}")
 
 if __name__ == "__main__":
     main()
