@@ -73,16 +73,17 @@ def create_workspace() -> le.Workspace:
 def parse_sortings(sortings: Any) -> List[RecordingSet]:
     recording_records: Dict[str, Any] = {}
     for s in sortings:
-        if s['recordingName'] not in recording_records:
+        name = s['recordingName']
+        if name not in recording_records:
             recording_records[s['recordingName']] = RecordingSet(
                 study_set_label  = s['studyName'],
-                recording_name   = s['recordingName'],
+                recording_name   = name,
                 recording_uri    = s['recordingUri'],
                 sorting_true_uri = s['groundTruthUri'],
                 sortings         = []
             )
         if 'sortingOutput' not in s: continue # when the underlying job errored
-        recording_records[s['sortingOutput']].sortings.append(SortingTuple(
+        recording_records[name].sortings.append(SortingTuple(
             uri   = s['sortingOutput']['data']['h5_path'],
             label = f"{s['sorterName']}--{s['recordingName']}"
         ))
