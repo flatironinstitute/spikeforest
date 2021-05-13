@@ -14,8 +14,8 @@ import kachery_p2p as kp
 TRUE_SORT_LABEL = "Ground Truth"
 
 class SortingTuple(NamedTuple):
-    uri:   str
-    label: str
+    object: Dict[any, any]
+    label:  str
 
 class RecordingSet(NamedTuple):
     study_set_label:  str
@@ -75,7 +75,7 @@ def parse_sortings(sortings: Any) -> List[RecordingSet]:
     for s in sortings:
         name = s['recordingName']
         if name not in recording_records:
-            recording_records[s['recordingName']] = RecordingSet(
+            recording_records[name] = RecordingSet(
                 study_set_label  = s['studyName'],
                 recording_name   = name,
                 recording_uri    = s['recordingUri'],
@@ -84,8 +84,8 @@ def parse_sortings(sortings: Any) -> List[RecordingSet]:
             )
         if 'sortingOutput' not in s: continue # when the underlying job errored
         recording_records[name].sortings.append(SortingTuple(
-            uri   = s['sortingOutput']['data']['h5_path'],
-            label = f"{s['sorterName']}--{s['recordingName']}"
+            object = s['sortingOutput'],
+            label  = f"{s['sorterName']}--{name}"
         ))
     return [recording_records[k] for k in recording_records.keys()]
 
@@ -104,13 +104,13 @@ def main():
             print(f"Adding {recording.get_num_channels()}-channel recording with label {recording_label}")
             print(f"Adding GT at {len(sorting_true.get_unit_ids())} units with label {TRUE_SORT_LABEL}")
             for s in r.sortings:
-                sorting = le.LabboxEphysSortingExtractor(s.uri, samplerate=30000)
+                sorting = le.LabboxEphysSortingExtractor(s.object, samplerate=30000)
                 print(f"Adding sorting {len(sorting.get_unit_ids())} with label {s.label}")
         else:
             R_id = workspace.add_recording(recording=recording, label=recording_label)
             GT_id = workspace.add_sorting(sorting=sorting_true, recording_id=R_id, label=TRUE_SORT_LABEL)
             s_ids = [workspace.add_sorting(
-                        sorting=le.LabboxEphysSortingExtractor(s.uri, samplerate=30000),
+                        sorting=le.LabboxEphysSortingExtractor(s.object, samplerate=30000),
                         recording_id=R_id,
                         label=s.label)
                      for s in r.sortings]
