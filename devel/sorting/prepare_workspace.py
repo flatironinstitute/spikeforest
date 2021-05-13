@@ -105,7 +105,7 @@ def main():
             print(f"Adding GT at {len(sorting_true.get_unit_ids())} units with label {TRUE_SORT_LABEL}")
             for s in r.sortings:
                 sorting = le.LabboxEphysSortingExtractor(s.object, samplerate=30000)
-                print(f"Adding sorting {len(sorting.get_unit_ids())} with label {s.label}")
+                print(f"Adding sorting of {len(sorting.get_unit_ids())} unit(s) with label {s.label}")
         else:
             R_id = workspace.add_recording(recording=recording, label=recording_label)
             GT_id = workspace.add_sorting(sorting=sorting_true, recording_id=R_id, label=TRUE_SORT_LABEL)

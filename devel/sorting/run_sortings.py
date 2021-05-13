@@ -252,11 +252,12 @@ def make_output_record(job: SortingJob) -> str:
     return json.dumps(record, indent=4)
 
 def output_records(results: List[str], std_args: StandardArgs):
+
     if std_args['outfile'] is not None and std_args['outfile'] != '':
         with open(std_args['outfile'], "a") as file:
-            file.write("\n".join(results))
+            json.dump(results, file)
     else:
-        print("\n".join(results))
+        print(json.dumps(results))
 
 def sorting_loop(sorting_matrix: Dict[str, Tuple[SorterRecord, List[str]]],
                  study_sets: Dict[str, List[StudyRecord]],
