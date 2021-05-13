@@ -51,7 +51,6 @@ def init() -> Params:
         else:
             # TODO: Create workspace if one is not specified
             raise NotImplementedError("Workspace creation is not yet implemented.")
-    # TODO: Check if workspace value is valid?
     if ((parsed.sortings_file is None and parsed.sortings_file_kachery_uri is None)
          or (parsed.sortings_file is not None and parsed.sortings_file_kachery_uri is not None)):
         raise Exception("Exactly one of sortings_file and sortings_file_kachery_uri must be set.")
@@ -82,7 +81,8 @@ def parse_sortings(sortings: Any) -> List[RecordingSet]:
 
 def main():
     (workspace_uri, sortings_json, dry_run) = init()
-    workspace = le.load_workspace(workspace_uri)
+    if not dry_run:
+        workspace = le.load_workspace(workspace_uri)
     recording_sets = parse_sortings(sortings_json)
     for r in recording_sets:
         recording = le.LabboxEphysRecordingExtractor(r.recording_uri, download=True)
