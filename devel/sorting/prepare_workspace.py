@@ -30,11 +30,15 @@ class Params(NamedTuple):
     sortings:  Any
     dry_run:   bool
 
+# TODO: Idempotency--if you add the same recording/sorting twice, should not get double entries.
+
 def init() -> Params:
     description = "Convert a sortings.json file into a populated Labbox workspace."
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--workspace-uri', '-w', action='store', default=None,
         help="URI of workspace to add data to. If None (default), a new workspace will be created.")
+    parser.add_argument('--feed-name', '-F', action='store', default=None,
+        help="Name of feed to attach workspace to. If not specified, a new feed will be created.")
     parser.add_argument('--sortings-file', '-s', action='store', default=None,
         help="Path to sortings file.")
     parser.add_argument('--sortings-file-kachery-uri', '-k', action='store', default=None,
@@ -61,6 +65,11 @@ def init() -> Params:
         sortings = kp.load_json(parsed.sortings_file_kachery_uri)
     return Params(workspace, sortings, parsed.dry_run)
 
+def create_workspace() -> le.Workspace:
+    feed = kp.load_feed('franklab-example-feed', create=True)
+    workspace = le.load_workspace(workspace_uri=f'workspace://{feed.get_feed_id()}/default')
+    return workspace
+
 def parse_sortings(sortings: Any) -> List[RecordingSet]:
     recording_records: Dict[str, Any] = {}
     for s in sortings:
@@ -69,7 +78,7 @@ def parse_sortings(sortings: Any) -> List[RecordingSet]:
                 study_set_label  = s['studyName'],
                 recording_name   = s['recordingName'],
                 recording_uri    = s['recordingUri'],
-                sorting_true_uri = s['sortingTrueUri'],
+                sorting_true_uri = s['groundTruthUri'],
                 sortings         = []
             )
         if 'firings' not in s: continue # when the underlying job errored
