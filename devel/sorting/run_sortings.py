@@ -4,7 +4,7 @@ import argparse
 from datetime import datetime
 import json
 import os
-from typing import Any, Dict, List, NamedTuple, Tuple, TypedDict, Union
+from typing import Any, Dict, Generator, List, NamedTuple, Tuple, TypedDict, Union
 import yaml
 
 from spikeforest._common.calling_framework import StandardArgs, add_standard_args, call_cleanup, extract_hither_config, _fmt_time, parse_shared_configuration, print_per_verbose
@@ -261,15 +261,14 @@ def output_records(results: List[str], std_args: StandardArgs):
 
 def sorting_loop(sorting_matrix: Dict[str, Tuple[SorterRecord, List[str]]],
                  study_sets: Dict[str, List[StudyRecord]],
-                ) -> List[SortingJob]:
-    jobs: List[SortingJob] = []
+                ) -> Generator[SortingJob, None, None]:
     for sorter_name in sorting_matrix.keys():
         (sorter, study_set_names) = sorting_matrix[sorter_name]
         for name in study_set_names:
             study_set = study_sets[name]
             for study in study_set:
                 for recording in study.recordings:
-                    jobs.append(SortingJob(
+                    yield SortingJob(
                         recording_name   = recording.recording_name,
                         recording_uri    = recording.recording_uri,
                         ground_truth_uri = recording.ground_truth_uri,
@@ -277,8 +276,7 @@ def sorting_loop(sorting_matrix: Dict[str, Tuple[SorterRecord, List[str]]],
                         sorter_name      = sorter.sorter_name,
                         params           = {},
                         sorting_job      = queue_sort(sorter, recording),
-                    ))
-    return jobs
+                    )
 
 def main():
     (args, std_args) = init_configuration()
@@ -288,7 +286,7 @@ def main():
     hither_config = extract_hither_config(std_args)
     try:
         with hi.Config(**hither_config):
-            sortings = sorting_loop(sorting_matrix, study_sets)
+            sortings = list(sorting_loop(sorting_matrix, study_sets))
         hi.wait(None)
     finally:
         call_cleanup(hither_config)
