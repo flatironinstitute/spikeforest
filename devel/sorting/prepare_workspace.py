@@ -4,6 +4,7 @@ from typing import Any, Dict, Generator, List, NamedTuple, Set, Tuple, Union
 
 import labbox_ephys as le
 import kachery_p2p as kp
+from spikeforest._common.calling_framework import print_per_verbose
 
 ## TODO: Need to do error checking on output ids?
 
@@ -50,10 +51,9 @@ def init() -> Params:
         help="If set, script will only parse the input files and display the workspace commands it would have run.")
     parsed = parser.parse_args()
 
-    if parsed.dry_run:
-        workspace_uri = 'Dry run, no workspace actually used'
-    else:
-        workspace_uri = parsed.workspace_uri or create_workspace()
+    workspace_uri = parsed.workspace_uri
+    if workspace_uri is None and not parsed.dry_run:
+        workspace_uri = create_workspace()
     if ((parsed.sortings_file is None and parsed.sortings_file_kachery_uri is None)
          or (parsed.sortings_file is not None and parsed.sortings_file_kachery_uri is not None)):
         raise Exception("Exactly one of sortings_file and sortings_file_kachery_uri must be set.")
@@ -94,6 +94,7 @@ def populate_extractors(entry: RecordingEntry) -> Tuple[le.LabboxEphysRecordingE
     return (recording, sorting_true, sorting)
 
 def add_entry_to_workspace(re: FullRecordingEntry, workspace: le.Workspace) -> None:
+    print_per_verbose(3, f"Hit live-load step. Current re values: r-id {re.R_id}, gt-exists: {re.gt_exists} sorting-exists: {re.sorting_exists}")
     R_id = re.R_id
     if R_id is None:
         R_id = workspace.add_recording(recording=re.recording, label=re.recording_label)
@@ -104,6 +105,7 @@ def add_entry_to_workspace(re: FullRecordingEntry, workspace: le.Workspace) -> N
     # TODO: Do something useful with the result codes here?
 
 def add_entry_dry_run(re: FullRecordingEntry) -> None:
+    print_per_verbose(3, f"Hit dry-run step. Current re values: r-id {re.R_id}, gt-exists: {re.gt_exists} sorting-exists: {re.sorting_exists}")
     if re.R_id is not None:
         print(f"Not adding {re.recording_label} as it is already in the workspace.")
     else:
@@ -132,7 +134,9 @@ def parse_sortings(sortings: List[Any]) -> Generator[RecordingEntry, None, None]
 
 def main():
     (workspace_uri, sortings_json, dry_run) = init()
-    workspace = None if dry_run else le.load_workspace(workspace_uri)
+    workspace = None if workspace_uri is None else le.load_workspace(workspace_uri)
+    if workspace_uri is None and dry_run:
+        workspace_uri = "(Dry run, no actual workspace written to)"
     loaded = 0
     for r in parse_sortings(sortings_json):
         (recording_label, ground_truth_label) = get_labels(r)
@@ -149,7 +153,7 @@ def main():
         else:
             add_entry_to_workspace(re=entry, workspace=workspace)
         loaded += 1
-    print(f"Loaded {loaded} recording sets to workspace {workspace_uri}")
+    print(f"Parsed {loaded} recording sets for workspace {workspace_uri}")
 
 if __name__ == "__main__":
     main()
