@@ -94,12 +94,13 @@ def populate_extractors(entry: RecordingEntry) -> Tuple[le.LabboxEphysRecordingE
     return (recording, sorting_true, sorting)
 
 def add_entry_to_workspace(re: FullRecordingEntry, workspace: le.Workspace) -> None:
-    if re.R_id is None:
-        re.R_id = workspace.add_recording(recording=re.recording, label=re.recording_label)
+    R_id = re.R_id
+    if R_id is None:
+        R_id = workspace.add_recording(recording=re.recording, label=re.recording_label)
     if not re.gt_exists:
-        GT_id = workspace.add_sorting(sorting=re.sorting_true, recording_id=re.R_id, label=re.ground_truth_label)
+        GT_id = workspace.add_sorting(sorting=re.sorting_true, recording_id=R_id, label=re.ground_truth_label)
     if not re.sorting_exists:
-        s_id = workspace.add_sorting(sorting=re.sorting, recording_id=re.R_id, label=re.sorting_label)
+        s_id = workspace.add_sorting(sorting=re.sorting, recording_id=R_id, label=re.sorting_label)
     # TODO: Do something useful with the result codes here?
 
 def add_entry_dry_run(re: FullRecordingEntry) -> None:
