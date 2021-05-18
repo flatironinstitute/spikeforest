@@ -131,8 +131,7 @@ def parse_sortings(sortings: List[Any]) -> Generator[RecordingEntry, None, None]
 
 def main():
     (workspace_uri, sortings_json, dry_run) = init()
-    if not dry_run:
-        workspace = le.load_workspace(workspace_uri)
+    workspace = None if dry_run else le.load_workspace(workspace_uri)
     loaded = 0
     for r in parse_sortings(sortings_json):
         (recording_label, ground_truth_label) = get_labels(r)
