@@ -110,7 +110,7 @@ def add_entry_dry_run(re: FullRecordingEntry) -> None:
     if re.gt_exists:
         print(f"Not adding {re.ground_truth_label} as it is already in the workspace.")
     else:
-        print(f"Would add GT at {len(re.true_sort.get_unit_ids())} units with label {re.ground_truth_label}")
+        print(f"Would add GT at {len(re.sorting_true.get_unit_ids())} units with label {re.ground_truth_label}")
     if re.sorting_exists:
         print(f"Not adding {re.sorting_label} as it is already in the workspace.")
     else:
