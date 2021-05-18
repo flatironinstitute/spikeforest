@@ -144,9 +144,9 @@ def main():
             gt_exists, sorting_exists
         )
         if dry_run:
-            add_entry_dry_run(re=entry, workspace=workspace)
+            add_entry_dry_run(re=entry)
         else:
-            add_entry_to_workspace(re=entry)
+            add_entry_to_workspace(re=entry, workspace=workspace)
         loaded += 1
     print(f"Loaded {loaded} recording sets to workspace {workspace_uri}")
 
