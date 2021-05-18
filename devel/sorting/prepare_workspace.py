@@ -1,33 +1,37 @@
 import argparse
 import json
-import numpy as np
-import spikeextractors as se
-from typing import Any, Dict, Generator, List, NamedTuple, Union
+from typing import Any, Dict, Generator, List, NamedTuple, Set, Tuple, Union
 
 import labbox_ephys as le
 import kachery_p2p as kp
 
-## TODO: Create new workspace?
-## TODO: Handle sample rate more gracefully?
 ## TODO: Need to do error checking on output ids?
 
-TRUE_SORT_LABEL = "Ground Truth"
+TRUE_SORT_LABEL = "Ground-Truth"
 
 class RecordingEntry(NamedTuple):
     study_set_label:  str
     recording_name:   str
     recording_uri:    str
-    # TODO SAMPLE RATE??
     sorting_true_uri: str
     sorting_object:   Dict[any, any]
     sorting_label:    str
+
+class FullRecordingEntry(NamedTuple):
+    recording_label: str
+    ground_truth_label: str
+    sorting_label: str
+    R_id: str
+    recording: le.LabboxEphysRecordingExtractor
+    sorting_true: le.LabboxEphysSortingExtractor
+    sorting: le.LabboxEphysSortingExtractor
+    gt_exists: bool
+    sorting_exists: bool
 
 class Params(NamedTuple):
     workspace: str
     sortings:  Any
     dry_run:   bool
-
-# TODO: Idempotency--if you add the same recording/sorting twice, should not get double entries.
 
 def init() -> Params:
     description = "Convert a sortings.json file into a populated Labbox workspace."
@@ -65,27 +69,52 @@ def create_workspace() -> str:
     kp.set('sortingview-default-workspace', workspace.uri)
     return workspace.uri
 
-def add_entry_to_workspace(entry: RecordingEntry,
-                           workspace: Union[le.Workspace, None],
-                           dry_run: bool = True) -> None:
-    recording = le.LabboxEphysRecordingExtractor(entry.recording_uri, download=True)
+def get_known_recording_id(workspace: Union[le.Workspace, None], recording_label: str) -> str:
+    if workspace is None: return None
+    for (_, v) in workspace._recordings.items():
+        if v['recordingLabel'] == recording_label:
+            return v['recordingId']
+    return None
+
+def sortings_are_in_workspace(workspace: Union[le.Workspace, None], gt: str, comp: str) -> Tuple[bool, bool]:
+    if workspace is None: return (False, False)
+    sortings = [workspace._sortings[key]['sortingLabel'] for key in workspace._sortings.keys()]
+    return (gt in sortings, comp in sortings)
+
+def get_labels(entry: RecordingEntry) -> Tuple(str, str):
     recording_label = entry.study_set_label + "\\" + entry.recording_name
-    # TODO: SAMPLE RATE -- assumed 30k, need to fix that!!!
-    sample_rate = 30000
+    ground_truth_label = f'{TRUE_SORT_LABEL}\{recording_label}'
+    return (recording_label, ground_truth_label)
+
+def populate_extractors(entry: RecordingEntry) -> Tuple[le.LabboxEphysRecordingExtractor, le.LabboxEphysSortingExtractor, le.LabboxEphysSortingExtractor]:
+    recording = le.LabboxEphysRecordingExtractor(entry.recording_uri, download=True)
+    sample_rate = recording.get_sampling_frequency()
     sorting_true = le.LabboxEphysSortingExtractor(entry.sorting_true_uri, samplerate=sample_rate)
     sorting = le.LabboxEphysSortingExtractor(entry.sorting_object, samplerate=sample_rate)
-    if dry_run:
-        print(f"Adding {recording.get_num_channels()}-channel recording with label {recording_label}")
-        print(f"Adding GT at {len(sorting_true.get_unit_ids())} units with label {TRUE_SORT_LABEL}")
-        print(f"Adding sorting of {len(sorting.get_unit_ids())} unit(s) with label {entry.sorting_label}")
-        return
-    # TODO: CHECK IF RECORDING/SORTING ALREADY IN WORKSPACE
-    R_id = workspace.add_recording(recording=recording, label=recording_label)
-    GT_id = workspace.add_sorting(sorting=sorting_true, recording_id=R_id, label=TRUE_SORT_LABEL)
-    # TODO: CHECK IF RECORDING/SORTING ALREADY IN WORKSPACE
-    s_id = workspace.add_sorting(sorting=sorting, recording_id=R_id, label=entry.sorting_label)
+    return (recording, sorting_true, sorting)
+
+def add_entry_to_workspace(re: FullRecordingEntry, workspace: le.Workspace) -> None:
+    if re.R_id is None:
+        re.R_id = workspace.add_recording(recording=re.recording, label=re.recording_label)
+    if not re.gt_exists:
+        GT_id = workspace.add_sorting(sorting=re.sorting_true, recording_id=re.R_id, label=re.ground_truth_label)
+    if not re.sorting_exists:
+        s_id = workspace.add_sorting(sorting=re.sorting, recording_id=re.R_id, label=re.sorting_label)
     # TODO: Do something useful with the result codes here?
 
+def add_entry_dry_run(re: FullRecordingEntry) -> None:
+    if re.R_id is not None:
+        print(f"Not adding {re.recording_label} as it is already in the workspace.")
+    else:
+        print(f"Would add {re.recording.get_num_channels()}-channel recording with label {re.recording_label}")
+    if re.gt_exists:
+        print(f"Not adding {re.ground_truth_label} as it is already in the workspace.")
+    else:
+        print(f"Would add GT at {len(re.true_sort.get_unit_ids())} units with label {re.ground_truth_label}")
+    if re.sorting_exists:
+        print(f"Not adding {re.sorting_label} as it is already in the workspace.")
+    else:
+        print(f"Would add sorting of {len(re.sorting.get_unit_ids())} unit(s) with label {re.sorting_label}")
 
 def parse_sortings(sortings: List[Any]) -> Generator[RecordingEntry, None, None]:
     for s in sortings:
@@ -97,7 +126,7 @@ def parse_sortings(sortings: List[Any]) -> Generator[RecordingEntry, None, None]
             recording_uri    = s['recordingUri'],
             sorting_true_uri = s['groundTruthUri'],
             sorting_object   = s['sortingOutput'],
-            sorting_label    = f"{s['sorterName']}--{name}"
+            sorting_label    = f"{s['sorterName']}\\{s['studyName']}\\{name}"
         )
 
 def main():
@@ -106,7 +135,19 @@ def main():
         workspace = le.load_workspace(workspace_uri)
     loaded = 0
     for r in parse_sortings(sortings_json):
-        add_entry_to_workspace(entry=r, workspace=workspace, dry_run=dry_run)
+        (recording_label, ground_truth_label) = get_labels(r)
+        (recording, sorting_true, sorting) = populate_extractors(r)
+        R_id = get_known_recording_id(workspace, recording_label)
+        (gt_exists, sorting_exists) = sortings_are_in_workspace(workspace, ground_truth_label, r.sorting_label)
+        entry = FullRecordingEntry(
+            recording_label, ground_truth_label, r.sorting_label,
+            R_id, recording, sorting_true, sorting,
+            gt_exists, sorting_exists
+        )
+        if dry_run:
+            add_entry_dry_run(re=entry, workspace=workspace)
+        else:
+            add_entry_to_workspace(re=entry)
         loaded += 1
     print(f"Loaded {loaded} recording sets to workspace {workspace_uri}")
 
