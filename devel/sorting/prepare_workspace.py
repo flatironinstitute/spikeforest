@@ -81,7 +81,7 @@ def sortings_are_in_workspace(workspace: Union[le.Workspace, None], gt: str, com
     sortings = [workspace._sortings[key]['sortingLabel'] for key in workspace._sortings.keys()]
     return (gt in sortings, comp in sortings)
 
-def get_labels(entry: RecordingEntry) -> Tuple(str, str):
+def get_labels(entry: RecordingEntry) -> Tuple[str, str]:
     recording_label = entry.study_set_label + "\\" + entry.recording_name
     ground_truth_label = f'{TRUE_SORT_LABEL}\{recording_label}'
     return (recording_label, ground_truth_label)
