@@ -23,10 +23,10 @@ def init_configuration() -> Tuple[Params, StandardArgs]:
     description = "Runs all known sorters against configured SpikeForest recordings, and loads the " + \
         "results into a (new or existing) workspace for display."
     parser = ArgumentParser(description=description)
-    parser = init_sorting_args(parser)
-    parser = add_standard_args(parser)
     parser.add_argument('--workspace-uri', '-W', action="store", default=None,
         help="URI of workspace to add data to. If None (default), a new workspace will be created.")
+    parser = init_sorting_args(parser)
+    parser = add_standard_args(parser)
     parsed = parser.parse_args()
     sortings_args = parse_argsdict(parsed)
     std_args = parse_shared_configuration(parsed)

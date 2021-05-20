@@ -70,12 +70,12 @@ class OutputRecord(TypedDict):
     groundTruthUri: str
 
 
-def init_configuration(parser: ArgumentParser) -> Tuple[ArgsDict, StandardArgs]:
+def init_configuration() -> Tuple[ArgsDict, StandardArgs]:
     parser = ArgumentParser(description="Given a list of study sets, run the specified suite of " +
         "spike sorters. Store results in kachery and return a json object describing the resulting sortings.")
     parser = init_sorting_args(parser)
     parser = add_standard_args(parser)
-    parsed = parser.parse_args
+    parsed = parser.parse_args()
     std_args = parse_shared_configuration(parsed)
     args = parse_argsdict(parsed)
     if (parsed.check_config):
@@ -104,7 +104,7 @@ def parse_argsdict(parsed: Namespace) -> ArgsDict:
         'sorter_spec_file': ''
     }
     args['sorter_spec_file'] = parsed.sorter_spec_file
-    if not os.path.exists(args['sorter_spec_file']):
+    if args['sorter_spec_file'] is None or not os.path.exists(args['sorter_spec_file']):
         raise FileNotFoundError(f"Requested spec file {args['sorter_spec_file']} does not exist.")
     if (parsed.study_source_file is not None):
         args['study_source_file'] = parsed.study_source_file
