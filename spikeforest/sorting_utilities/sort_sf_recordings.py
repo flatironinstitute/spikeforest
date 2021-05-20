@@ -40,15 +40,6 @@ def init_configuration() -> Tuple[Params, StandardArgs]:
     )
     return (params, std_args)
 
-# class SortingJob(NamedTuple):
-#     recording_name: str
-#     recording_uri: str
-#     ground_truth_uri: str
-#     study_name: str
-#     sorter_name: str
-#     params: Any
-#     sorting_job: hi.Job
-
 def populate_extractors(workspace_uri: str, rec_uri: str, gt_uri: str, sorting_result: Any) -> HydratedObjects:
     workspace = le.load_workspace(workspace_uri)
     recording = le.LabboxEphysRecordingExtractor(rec_uri, download=True)
@@ -63,7 +54,7 @@ def populate_extractors(workspace_uri: str, rec_uri: str, gt_uri: str, sorting_r
     )
 
 @hi.function(
-    'result_reporter', '0.1.0',
+    'hi_post_result_to_workspace', '0.1.0',
     modules=['labbox_ephys', 'spikeforest'],
     kachery_support=True
 )
