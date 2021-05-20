@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from argparse import ArgumentParser, Namespace
 
 import datetime
 import os
@@ -30,7 +31,7 @@ RECORDING_URI_KEY = 'recordingUri'
 GROUND_TRUTH_URI_KEY = 'sortingTrueUri'
 SORTING_FIRINGS_URI_KEY = 'firings'
 
-def add_standard_args(parser: Any) -> Any:
+def add_standard_args(parser: ArgumentParser) -> ArgumentParser:
     """Adds standard command-line arguments for interacting with hither/slurm calling conventions.
     Included arguments are --verbose (-v|vv|vvv...), --test (-t), --outfile (-o), --workercount (-w),
     --job-cache, --no-job-cache, --use-container, --no-container, --use-slurm, --slurm-partition,
@@ -38,10 +39,10 @@ def add_standard_args(parser: Any) -> Any:
     --slurm-gpus-per-node, --timeout-min, and --check-config.
 
     Args:
-        parser (Any): An initialized argparse ArgumentParser to extend.
+        parser (argparse.ArgumentParser): An initialized argparse ArgumentParser to extend.
 
     Returns:
-        (Any): Formally untyped, this function returns the result of calling parser.parse_args().
+        (argparse.Namespace): The result of calling parser.parse_args().
     """
     parser.add_argument('--verbose', '-v', action='count', default=0,
         help="Set verbosity level. Add vs for more verbosity.")
@@ -82,10 +83,9 @@ def add_standard_args(parser: Any) -> Any:
         help='If set, slurm commands will require this many GPUs per allocated node.')
     parser.add_argument('--check-config', action='store_true', default=False,
         help='Debugging tool. If set, program will simply quit with a description of the parsed configuration.')
-    parsed = parser.parse_args()
-    return parsed
+    return parser
 
-def parse_shared_configuration(parsed: Any):
+def parse_shared_configuration(parsed: Namespace) -> StandardArgs:
     """Generates a dictionary of configuration options for running jobs against hither, regardless of back-end.
 
     Args:
@@ -126,7 +126,7 @@ def parse_shared_configuration(parsed: Any):
     )
 
 # TODO: print_per_verbose, _fmt_time belong in a different file?
-def print_per_verbose(lvl: int, msg: str):
+def print_per_verbose(lvl: int, msg: str) -> None:
     # verbosity_level is a static value, initialized from command-line argument at setup time in init_configuration().
     # This does not play nicely with containerization, but global arguments variables don't either; rather than passing
     # needless verbosity parameters around, we're just going to stay silent if the verbosity_level property isn't set.
@@ -135,7 +135,7 @@ def print_per_verbose(lvl: int, msg: str):
     tabs = max(0, lvl - 1)
     print("\t" * tabs + msg)
 
-def _fmt_time(t: Union[float, None]):
+def _fmt_time(t: Union[float, None]) -> str:
     if not t: return 'TIME NOT SPECIFIED'
     return datetime.datetime.fromtimestamp(t).isoformat()
 

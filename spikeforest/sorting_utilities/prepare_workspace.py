@@ -1,4 +1,4 @@
-import argparse
+from argparse import ArgumentParser, Namespace
 import json
 from typing import Any, Dict, Generator, List, NamedTuple, Set, Tuple, Union
 
@@ -16,6 +16,8 @@ class RecordingEntry(NamedTuple):
     recording_uri:    str
     sorting_true_uri: str
     sorting_object:   Dict[any, any]
+    recording_label:  str
+    truth_label:      str
     sorting_label:    str
 
 class FullRecordingEntry(NamedTuple):
@@ -36,12 +38,14 @@ class Params(NamedTuple):
 
 def init() -> Params:
     description = "Convert a sortings.json file into a populated Labbox workspace."
-    parser = argparse.ArgumentParser(description=description)
+    parser = ArgumentParser(description=description)
+    parser = init_workspace_args(parser)
+    parsed = parser.parse_args()
+    return parse_workspace_params(parsed)
+
+def init_workspace_args(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument('--workspace-uri', '-W', action='store', default=None,
         help="URI of workspace to add data to. If None (default), a new workspace will be created.")
-    parser.add_argument('--feed-name', '-F', action='store', default=None,
-        help="Name of feed to attach workspace to. If not specified, a new feed will be created. " + 
-             "Only used if no workspace uri is set.")
     parser.add_argument('--sortings-file', '-s', action='store', default=None,
         help="Path to sortings file.")
     parser.add_argument('--sortings-file-kachery-uri', '-k', action='store', default=None,
@@ -49,8 +53,9 @@ def init() -> Params:
            + "should be set.")
     parser.add_argument('--dry-run', action='store_true', default=False,
         help="If set, script will only parse the input files and display the workspace commands it would have run.")
-    parsed = parser.parse_args()
+    return parser
 
+def parse_workspace_params(parsed: Namespace) -> Params:
     workspace_uri = parsed.workspace_uri
     if workspace_uri is None and not parsed.dry_run:
         workspace_uri = create_workspace()
@@ -81,10 +86,11 @@ def sortings_are_in_workspace(workspace: Union[le.Workspace, None], gt: str, com
     sortings = [workspace._sortings[key]['sortingLabel'] for key in workspace._sortings.keys()]
     return (gt in sortings, comp in sortings)
 
-def get_labels(entry: RecordingEntry) -> Tuple[str, str]:
-    recording_label = entry.study_set_label + "\\" + entry.recording_name
-    ground_truth_label = f'{TRUE_SORT_LABEL}\{recording_label}'
-    return (recording_label, ground_truth_label)
+def get_labels(study_name: str, recording_name: str, gt_token: str, sorter_name: str) -> Tuple[str, str, str]:
+    recording_label    = f'{study_name}/{recording_name}'
+    ground_truth_label = f'{gt_token}/{recording_label}'
+    sorting_label      = f'{sorter_name}/{recording_label}'
+    return (recording_label, ground_truth_label, sorting_label)
 
 def populate_extractors(entry: RecordingEntry) -> Tuple[le.LabboxEphysRecordingExtractor, le.LabboxEphysSortingExtractor, le.LabboxEphysSortingExtractor]:
     recording = le.LabboxEphysRecordingExtractor(entry.recording_uri, download=True)
@@ -123,13 +129,16 @@ def parse_sortings(sortings: List[Any]) -> Generator[RecordingEntry, None, None]
     for s in sortings:
         if 'sortingOutput' not in s: continue # when the underlying job errored
         name = s['recordingName']
+        (recording_label, gt_label, sorting_label) = get_labels(s['studyName'], name, TRUE_SORT_LABEL, s['sorterName'])
         yield RecordingEntry(
             study_set_label  = s['studyName'],
             recording_name   = name,
             recording_uri    = s['recordingUri'],
             sorting_true_uri = s['groundTruthUri'],
             sorting_object   = s['sortingOutput'],
-            sorting_label    = f"{s['sorterName']}\\{s['studyName']}\\{name}"
+            recording_label  = recording_label,
+            truth_label      = gt_label,
+            sorting_label    = sorting_label
         )
 
 def main():
@@ -139,12 +148,11 @@ def main():
         workspace_uri = "(Dry run, no actual workspace written to)"
     loaded = 0
     for r in parse_sortings(sortings_json):
-        (recording_label, ground_truth_label) = get_labels(r)
         (recording, sorting_true, sorting) = populate_extractors(r)
-        R_id = get_known_recording_id(workspace, recording_label)
-        (gt_exists, sorting_exists) = sortings_are_in_workspace(workspace, ground_truth_label, r.sorting_label)
+        R_id = get_known_recording_id(workspace, r.recording_label)
+        (gt_exists, sorting_exists) = sortings_are_in_workspace(workspace, r.truth_label, r.sorting_label)
         entry = FullRecordingEntry(
-            recording_label, ground_truth_label, r.sorting_label,
+            r.recording_label, r.truth_label, r.sorting_label,
             R_id, recording, sorting_true, sorting,
             gt_exists, sorting_exists
         )

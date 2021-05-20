@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import argparse
+from argparse import ArgumentParser, Namespace
 from datetime import datetime
 import json
 import os
@@ -70,14 +70,39 @@ class OutputRecord(TypedDict):
     groundTruthUri: str
 
 
-def init_configuration():
+def init_configuration(parser: ArgumentParser) -> Tuple[ArgsDict, StandardArgs]:
+    parser = ArgumentParser(description="Given a list of study sets, run the specified suite of " +
+        "spike sorters. Store results in kachery and return a json object describing the resulting sortings.")
+    parser = init_sorting_args(parser)
+    parser = add_standard_args(parser)
+    parsed = parser.parse_args
+    std_args = parse_shared_configuration(parsed)
+    args = parse_argsdict(parsed)
+    if (parsed.check_config):
+        print(f"""Received the following environment vars:
+            HITHER_USE_CONTAINER: {os.getenv('HITHER_USE_CONTAINER')}
+            HITHER_USE_SINGULARITY: {os.getenv('HITHER_USE_SINGULARITY')}
+            HITHER_MATLAB_MLM_LICENSE_FILE: {os.getenv('HITHER_MATLAB_MLM_LICENSE_FILE')}
+        """)
+        print(f"\n\tFinal Shared configuration:\n{json.dumps(std_args, indent=4)}")
+        print(f"\n\tFinal configuration:\n{json.dumps(args, indent=4)}")
+        exit()
+    return (args, std_args)
+
+def init_sorting_args(parser: ArgumentParser) -> ArgumentParser:
+    parser.add_argument('--study-source-file', '-s', action='store', default=None,
+        help="Path or kachery URI for the JSON file which contains the list of study sets. Note that " +
+        "this parameter is usually part of the sorter spec file; if it is provided, the command-line " +
+        "option will override any value specified in the sorter spec file.")
+    parser.add_argument('--sorter-spec-file', '-l', action='store',
+        help="Path or kachery URI for the YAML file which contains the sorters to run, with parameters.")
+    return parser
+
+def parse_argsdict(parsed: Namespace) -> ArgsDict:
     args: ArgsDict = {
         'study_source_file': '',
         'sorter_spec_file': ''
     }
-    parsed = init_args()
-    std_args = parse_shared_configuration(parsed)
-
     args['sorter_spec_file'] = parsed.sorter_spec_file
     if not os.path.exists(args['sorter_spec_file']):
         raise FileNotFoundError(f"Requested spec file {args['sorter_spec_file']} does not exist.")
@@ -89,29 +114,7 @@ def init_configuration():
             args['study_source_file'] = spec_yaml['studysets']
     if not os.path.exists(args['study_source_file']):
         raise FileNotFoundError(f"Requested study source file {args['study_source_file']} does not exist.")
-    if (parsed.check_config):
-        print(f"""Received the following environment vars:
-            HITHER_USE_CONTAINER: {os.getenv('HITHER_USE_CONTAINER')}
-            HITHER_USE_SINGULARITY: {os.getenv('HITHER_USE_SINGULARITY')}
-            HITHER_MATLAB_MLM_LICENSE_FILE: {os.getenv('HITHER_MATLAB_MLM_LICENSE_FILE')}
-        """)
-        print(f"\n\tFinal Shared configuration:\n{json.dumps(std_args, indent=4)}")
-        print(f"\n\tFinal configuration:\n{json.dumps(args, indent=4)}")
-        exit()
-
-    return (args, std_args)
-
-def init_args():
-    parser = argparse.ArgumentParser(description="Given a list of study sets, run the specified suite of " +
-    "spike sorters. Store results in kachery and return a json object describing the resulting sortings.")
-    parser.add_argument('--study-source-file', '-s', action='store', default=None,
-        help="Path or kachery URI for the JSON file which contains the list of study sets. Note that " +
-        "this parameter is usually part of the sorter spec file; if it is provided, the command-line " +
-        "option will override any value specified in the sorter spec file.")
-    parser.add_argument('--sorter-spec-file', '-l', action='store',
-        help="Path or kachery URI for the YAML file which contains the sorters to run, with parameters.")
-    parsed = add_standard_args(parser)
-    return parsed
+    return args
 
 def parse_sorters(spec_filename: str, known_study_sets: List[str]) -> Dict[str, Tuple[SorterRecord, List[str]]]:
     with open(spec_filename) as file:
@@ -218,7 +221,7 @@ def queue_sort(sorter: SorterRecord, recording: RecordingRecord) -> hi.Job:
     return hi.Job(sort_fn, params)
 
 
-def make_output_record(job: SortingJob) -> str:
+def make_output_record(job: SortingJob) -> OutputRecord:
     errored = job.sorting_job.status == "error"
     if (errored):
         stored_sorting = None
@@ -249,10 +252,12 @@ def make_output_record(job: SortingJob) -> str:
         'recordingUri': job.recording_uri,
         'groundTruthUri': job.ground_truth_uri
     }
+    return record
+
+def make_json_output_record(record: OutputRecord) -> str:
     return json.dumps(record, indent=4)
 
-def output_records(results: List[str], std_args: StandardArgs):
-
+def output_records(results: List[str], std_args: StandardArgs) -> None:
     if std_args['outfile'] is not None and std_args['outfile'] != '':
         with open(std_args['outfile'], "a") as file:
             json.dump(results, file, indent=2)
@@ -290,7 +295,7 @@ def main():
         hi.wait(None)
     finally:
         call_cleanup(hither_config)
-    results: List[str] = [make_output_record(job) for job in sortings]
+    results: List[str] = [make_json_output_record(job) for job in sortings]
     output_records(results, std_args)
 
 
