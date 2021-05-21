@@ -50,7 +50,7 @@ def remove_preexisting_records(matrix: SortingMatrixDict, w_uri: str) -> Sorting
             (_, sorting_exists) = sortings_are_in_workspace(workspace, gt_label, s_label)
             if (sorting_exists): continue
             if sorter_name not in new_matrix:
-                new_matrix[sorter_name] = (sorter, [])
+                new_matrix[sorter_name] = SortingMatrixEntry(sorter_record=sorter, requested_recordings=[])
             new_matrix[sorter_name].requested_recordings.append(recording)
     return new_matrix
 
@@ -76,17 +76,27 @@ def hi_post_result_to_workspace(
     sorting_entry: SortingJob,
     workspace_uri: str
 ) -> None:
-    if (sorting_entry.sorting_job.status == "error"):
-        print(f"Errored job: {sorting_entry.recording_name} {sorting_entry.sorter_name}")
+    # Python does not round-trip namedtuples effectively :(
+    entry = SortingJob(
+        recording_name=sorting_entry[0],
+        recording_uri=sorting_entry[1],
+        ground_truth_uri=sorting_entry[2],
+        study_name=sorting_entry[3],
+        sorter_name=sorting_entry[4],
+        params=sorting_entry[5],
+        sorting_job=sorting_entry[6]
+    )
+    if (entry.sorting_job['status'] == "error"):
+        print(f"Errored job: {entry.recording_name} {entry.sorter_name}")
         return
     items = populate_extractors(workspace_uri,
-                                sorting_entry.recording_uri,
-                                sorting_entry.ground_truth_uri,
-                                sorting_entry.sorting_job.result.return_value)
-    (r_label, gt_label, s_label) = get_labels(sorting_entry.study_name,
-                                              sorting_entry.recording_name,
+                                entry.recording_uri,
+                                entry.ground_truth_uri,
+                                entry.sorting_job.result.return_value)
+    (r_label, gt_label, s_label) = get_labels(entry.study_name,
+                                              entry.recording_name,
                                               GROUND_TRUTH_URI_KEY,
-                                              sorting_entry.sorter_name)
+                                              entry.sorter_name)
     R_id = get_known_recording_id(items.workspace, r_label)
     (gt_exists, sorting_exists) = sortings_are_in_workspace(items.workspace, gt_label, s_label)
     entry = FullRecordingEntry(
@@ -101,13 +111,13 @@ def main():
     study_sets = load_study_records(params.study_source_file)
     study_matrix = parse_sorters(params.sorter_spec_file, list(study_sets.keys()))
     sorting_matrix = populate_sorting_matrix(study_matrix, study_sets)
-    sorting_matrix = remove_preexisting_records(sorting_matrix, study_sets, params.workspace_uri)
+    sorting_matrix = remove_preexisting_records(sorting_matrix, params.workspace_uri)
     hither_config = extract_hither_config(std_args)
     jobs: hi.Job = []
 
     try:
         with hi.Config(**hither_config):
-            sortings = list(sorting_loop(sorting_matrix, study_sets))
+            sortings = list(sorting_loop(sorting_matrix))
             with hi.Config(job_handler=None, job_cache=None):
                 for sorting in sortings:
                     p = {
