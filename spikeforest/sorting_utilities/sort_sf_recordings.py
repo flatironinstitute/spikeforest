@@ -5,7 +5,7 @@ import hither2 as hi
 import labbox_ephys as le
 
 from spikeforest._common.calling_framework import GROUND_TRUTH_URI_KEY, StandardArgs, add_standard_args, call_cleanup, parse_shared_configuration, print_per_verbose
-from spikeforest.sorting_utilities.run_sortings import SortingMatrixEntry, init_sorting_args, parse_argsdict, load_study_records, parse_sorters, extract_hither_config, sorting_loop, SortingJob, SortingMatrixDict, StudyRecord, StudySetsDict
+from spikeforest.sorting_utilities.run_sortings import SortingMatrixEntry, init_sorting_args, parse_argsdict, load_study_records, parse_sorters, extract_hither_config, populate_sorting_matrix, sorting_loop, SortingJob, SortingMatrixDict, StudyRecord, StudySetsDict
 from spikeforest.sorting_utilities.prepare_workspace import FullRecordingEntry, add_entry_to_workspace, create_workspace, get_known_recording_id, get_labels, TRUE_SORT_LABEL, sortings_are_in_workspace
 
 class Params(NamedTuple):
@@ -40,9 +40,19 @@ def init_configuration() -> Tuple[Params, StandardArgs]:
     )
     return (params, std_args)
 
-def remove_preexisting_records(matrix: SortingMatrixDict, study_sets: StudySetsDict, w_uri: str) -> SortingMatrixDict:
+def remove_preexisting_records(matrix: SortingMatrixDict, w_uri: str) -> SortingMatrixDict:
     workspace = le.load_workspace(w_uri)
-    pass
+    new_matrix: SortingMatrixDict = {}
+    for sorter_name in matrix.keys():
+        (sorter, recording_list) = matrix[sorter_name]
+        for recording in recording_list:
+            (_, gt_label, s_label) = get_labels(recording.study_name, recording.recording_name, GROUND_TRUTH_URI_KEY, sorter_name)
+            (_, sorting_exists) = sortings_are_in_workspace(workspace, gt_label, s_label)
+            if (sorting_exists): continue
+            if sorter_name not in new_matrix:
+                new_matrix[sorter_name] = (sorter, [])
+            new_matrix[sorter_name].requested_recordings.append(recording)
+    return new_matrix
 
 def populate_extractors(workspace_uri: str, rec_uri: str, gt_uri: str, sorting_result: Any) -> HydratedObjects:
     workspace = le.load_workspace(workspace_uri)
@@ -89,21 +99,22 @@ def hi_post_result_to_workspace(
 def main():
     (params, std_args) = init_configuration()
     study_sets = load_study_records(params.study_source_file)
-    sorting_matrix = parse_sorters(params.sorter_spec_file, list(study_sets.keys()))
+    study_matrix = parse_sorters(params.sorter_spec_file, list(study_sets.keys()))
+    sorting_matrix = populate_sorting_matrix(study_matrix, study_sets)
     sorting_matrix = remove_preexisting_records(sorting_matrix, study_sets, params.workspace_uri)
     hither_config = extract_hither_config(std_args)
     jobs: hi.Job = []
 
     try:
-        with hi.Config(job_handler=None, job_cache=None):
-            with hi.Config(**hither_config):
-                sortings = list(sorting_loop(sorting_matrix, study_sets))
-            for sorting in sortings:
-                p = {
-                    'sorting_entry': sorting,
-                    'workspace_uri': params.workspace_uri
-                }
-                jobs.append(hi.Job(hi_post_result_to_workspace, p))
+        with hi.Config(**hither_config):
+            sortings = list(sorting_loop(sorting_matrix, study_sets))
+            with hi.Config(job_handler=None, job_cache=None):
+                for sorting in sortings:
+                    p = {
+                        'sorting_entry': sorting,
+                        'workspace_uri': params.workspace_uri
+                    }
+                    jobs.append(hi.Job(hi_post_result_to_workspace, p))
         hi.wait(None)
     finally:
         call_cleanup(hither_config)
