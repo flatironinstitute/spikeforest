@@ -295,7 +295,7 @@ def main():
         hi.wait(None)
     finally:
         call_cleanup(hither_config)
-    results: List[str] = [make_json_output_record(job) for job in sortings]
+    results: List[str] = [make_json_output_record(make_output_record(job)) for job in sortings]
     output_records(results, std_args)
 
 
