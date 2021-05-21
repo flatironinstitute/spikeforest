@@ -33,6 +33,7 @@ class ArgsDict(TypedDict):
     sorter_spec_file: str
 
 class RecordingRecord(NamedTuple):
+    study_name: str
     recording_name: str
     recording_uri: str
     ground_truth_uri: str
@@ -40,6 +41,8 @@ class RecordingRecord(NamedTuple):
 class StudyRecord(NamedTuple):
     study_name: str
     recordings: List[RecordingRecord]
+
+StudySetsDict = Dict[str, List[StudyRecord]]
 
 class SorterRecord(NamedTuple):
     sorter_name: str
@@ -53,6 +56,18 @@ class SortingJob(NamedTuple):
     sorter_name: str
     params: Any
     sorting_job: hi.Job
+
+class SorterStudyMatrixEntry(NamedTuple):
+    sorter_record: SorterRecord
+    requested_studies: List[str]
+SorterStudyMatrixDict = Dict[str, SorterStudyMatrixEntry]
+
+class SortingMatrixEntry(NamedTuple):
+    sorter_record: SorterRecord
+    requested_recordings: List[RecordingRecord]
+
+# Key is a sorter-name; value is a Tuple of SorterRecord, List[RecordingRecord]
+SortingMatrixDict = Dict[str, SortingMatrixEntry]
 
 # TypedDict is JSON-serializable, while NamedTuple isn't
 class OutputRecord(TypedDict):
@@ -116,32 +131,48 @@ def parse_argsdict(parsed: Namespace) -> ArgsDict:
         raise FileNotFoundError(f"Requested study source file {args['study_source_file']} does not exist.")
     return args
 
-def parse_sorters(spec_filename: str, known_study_sets: List[str]) -> Dict[str, Tuple[SorterRecord, List[str]]]:
+def parse_sorters(spec_filename: str, known_study_sets: List[str]) -> SorterStudyMatrixDict:
     with open(spec_filename) as file:
         spec_yaml = yaml.safe_load(file)
-    expected_study_sets = { i : i for i in spec_yaml['studyset_names'] }
-    missing_sets = list(filter(lambda s: s not in known_study_sets, expected_study_sets))
+    declared_study_sets = { i : i for i in spec_yaml['studyset_names'] }
+    missing_sets = list(filter(lambda s: s not in known_study_sets, declared_study_sets))
     if len(missing_sets) != 0:
         bad = "\n\t".join(missing_sets)
         raise Exception(f"Spec file references study sets not recorded in study set file:\n\t{bad}")
-    sorting_matrix: Dict[str, Tuple[SorterRecord, List[str]]] = {}
+    sorting_matrix: SorterStudyMatrixDict = {}
     for sorter in spec_yaml['spike_sorters']:
         s: SorterRecord = SorterRecord(sorter_name=sorter['name'], sorting_parameters=sorter['params'])
         if s.sorter_name not in list(KNOWN_SORTERS.keys()):
             raise Exception(f"Spec file {spec_filename} requested unrecognized sorter {s.sorter_name}.")
-        requested_study_sets = sorter['studysets']
-        if not all(elem in expected_study_sets for elem in requested_study_sets):
+        requested_study_sets: List[str] = sorter['studysets']
+        if not all(elem in declared_study_sets for elem in requested_study_sets):
             err = f"Sorter record {s.sorter_name} requests an unknown study. " + \
-                  f"(Requested:\n{requested_study_sets}, known:\n{list(expected_study_sets.keys())})"
+                  f"(Requested:\n{requested_study_sets}, known:\n{list(declared_study_sets.keys())})"
             raise Exception(err)
         sorting_matrix[s.sorter_name] = (s, requested_study_sets)
     return sorting_matrix
 
 
-def load_study_records(study_set_file: str) -> Dict[str, List[StudyRecord]]:
+# class SortingMatrixEntry(NamedTuple):
+#     sorter_record: SorterRecord
+#     requested_recordings: List[RecordingRecord]
+
+def populate_sorting_matrix(study_matrix: SorterStudyMatrixDict, study_sets: StudySetsDict) -> SortingMatrixDict:
+    detailed_matrix: SortingMatrixDict = {}
+    for sorter_name in study_matrix.keys():
+        (sorter, study_set_names) = study_matrix[sorter_name]
+        detailed_matrix[sorter_name] = SorterStudyMatrixEntry(
+            sorter_record = sorter,
+            requested_studies=[x for name in study_set_names
+                                    for study in study_sets[name]
+                                        for x in study.recordings]
+        )
+    return detailed_matrix
+
+def load_study_records(study_set_file: str) -> StudySetsDict:
     hydrated_sets = kp.load_json(study_set_file)
     assert hydrated_sets is not None
-    study_sets: Dict[str, List[StudyRecord]] = {}
+    study_sets: StudySetsDict = {}
     # Make a list of study_set lists, one per StudySet in the source json file.
     for study_set in hydrated_sets['StudySets']:
         name = study_set['name']
@@ -172,6 +203,7 @@ def make_study_records_from_studyset(study_set: Any) -> List[StudyRecord]:
                 study_name=study['name'],
                 recordings=[
                             RecordingRecord(
+                                study_name       = study['name'],
                                 recording_name   = r['name'],
                                 recording_uri    = r['recordingUri'],
                                 ground_truth_uri = r['sortingTrueUri']
@@ -264,38 +296,34 @@ def output_records(results: List[str], std_args: StandardArgs) -> None:
     else:
         print(json.dumps(results, indent=4))
 
-def sorting_loop(sorting_matrix: Dict[str, Tuple[SorterRecord, List[str]]],
-                 study_sets: Dict[str, List[StudyRecord]],
-                ) -> Generator[SortingJob, None, None]:
+def sorting_loop(sorting_matrix: SortingMatrixDict) -> Generator[SortingJob, None, None]:
     for sorter_name in sorting_matrix.keys():
-        (sorter, study_set_names) = sorting_matrix[sorter_name]
-        for name in study_set_names:
-            study_set = study_sets[name]
-            for study in study_set:
-                for recording in study.recordings:
-                    yield SortingJob(
-                        recording_name   = recording.recording_name,
-                        recording_uri    = recording.recording_uri,
-                        ground_truth_uri = recording.ground_truth_uri,
-                        study_name       = study.study_name,
-                        sorter_name      = sorter.sorter_name,
-                        params           = {},
-                        sorting_job      = queue_sort(sorter, recording),
-                    )
+        (sorter, recordings) = sorting_matrix[sorter_name]
+        for recording in recordings:
+            yield SortingJob(
+                recording_name   = recording.recording_name,
+                recording_uri    = recording.recording_uri,
+                ground_truth_uri = recording.ground_truth_uri,
+                study_name       = recording.study_name,
+                sorter_name      = sorter.sorter_name,
+                params           = sorter.sorting_parameters,
+                sorting_job      = queue_sort(sorter, recording)
+            )
 
 def main():
     (args, std_args) = init_configuration()
     study_sets = load_study_records(args['study_source_file'])
-    sorting_matrix = parse_sorters(args['sorter_spec_file'], list(study_sets.keys()))
+    study_matrix = parse_sorters(args['sorter_spec_file'], list(study_sets.keys()))
+    sorting_matrix = populate_sorting_matrix(study_matrix, study_sets)
 
     hither_config = extract_hither_config(std_args)
     try:
         with hi.Config(**hither_config):
-            sortings = list(sorting_loop(sorting_matrix, study_sets))
+            sortings = list(sorting_loop(sorting_matrix))
         hi.wait(None)
     finally:
         call_cleanup(hither_config)
-    results: List[str] = [make_json_output_record(make_output_record(job)) for job in sortings]
+    results: List[OutputRecord] = [make_output_record(job) for job in sortings]
     output_records(results, std_args)
 
 

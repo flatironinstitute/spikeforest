@@ -1,11 +1,11 @@
 from argparse import ArgumentParser
-from typing import Any, Tuple, NamedTuple
+from typing import Any, Dict, List, Tuple, NamedTuple
 
 import hither2 as hi
 import labbox_ephys as le
 
 from spikeforest._common.calling_framework import GROUND_TRUTH_URI_KEY, StandardArgs, add_standard_args, call_cleanup, parse_shared_configuration, print_per_verbose
-from spikeforest.sorting_utilities.run_sortings import init_sorting_args, parse_argsdict, load_study_records, parse_sorters, extract_hither_config, sorting_loop, SortingJob
+from spikeforest.sorting_utilities.run_sortings import SortingMatrixEntry, init_sorting_args, parse_argsdict, load_study_records, parse_sorters, extract_hither_config, sorting_loop, SortingJob, SortingMatrixDict, StudyRecord, StudySetsDict
 from spikeforest.sorting_utilities.prepare_workspace import FullRecordingEntry, add_entry_to_workspace, create_workspace, get_known_recording_id, get_labels, TRUE_SORT_LABEL, sortings_are_in_workspace
 
 class Params(NamedTuple):
@@ -39,6 +39,10 @@ def init_configuration() -> Tuple[Params, StandardArgs]:
         workspace_uri     = workspace_uri
     )
     return (params, std_args)
+
+def remove_preexisting_records(matrix: SortingMatrixDict, study_sets: StudySetsDict, w_uri: str) -> SortingMatrixDict:
+    workspace = le.load_workspace(w_uri)
+    pass
 
 def populate_extractors(workspace_uri: str, rec_uri: str, gt_uri: str, sorting_result: Any) -> HydratedObjects:
     workspace = le.load_workspace(workspace_uri)
@@ -86,6 +90,7 @@ def main():
     (params, std_args) = init_configuration()
     study_sets = load_study_records(params.study_source_file)
     sorting_matrix = parse_sorters(params.sorter_spec_file, list(study_sets.keys()))
+    sorting_matrix = remove_preexisting_records(sorting_matrix, study_sets, params.workspace_uri)
     hither_config = extract_hither_config(std_args)
     jobs: hi.Job = []
 
