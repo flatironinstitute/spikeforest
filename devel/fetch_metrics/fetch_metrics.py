@@ -48,7 +48,8 @@ def init_args():
             "should be equivalent to the output of an API call to SpikeForest.")
     parser.add_argument('--recordingset', '-r', action='store', default='',
         help='If set, will limit processing to the set of recordings named in the variable (e.g. "paired_kampff").')
-    parsed = add_standard_args(parser)
+    parser = add_standard_args(parser)
+    parsed = parser.parse_args()
     return parsed
 
 def init_configuration():
