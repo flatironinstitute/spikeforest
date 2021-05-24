@@ -86,13 +86,11 @@ def hi_post_result_to_workspace(
         params=sorting_entry[5],
         sorting_job=sorting_entry[6]
     )
-    if (entry.sorting_job['status'] == "error"):
-        print(f"Errored job: {entry.recording_name} {entry.sorter_name}")
-        return
     items = populate_extractors(workspace_uri,
                                 entry.recording_uri,
                                 entry.ground_truth_uri,
-                                entry.sorting_job.result.return_value)
+                                # within a hither Job, other Jobs are replaced with Job.result.return_value
+                                entry.sorting_job)
     (r_label, gt_label, s_label) = get_labels(entry.study_name,
                                               entry.recording_name,
                                               GROUND_TRUTH_URI_KEY,

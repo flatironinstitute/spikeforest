@@ -252,6 +252,20 @@ def queue_sort(sorter: SorterRecord, recording: RecordingRecord) -> hi.Job:
     }
     return hi.Job(sort_fn, params)
 
+def sorting_loop(sorting_matrix: SortingMatrixDict) -> Generator[SortingJob, None, None]:
+    for sorter_name in sorting_matrix.keys():
+        print_per_verbose(3, f"Queueing sort for sorter {sorter_name}")
+        (sorter, recordings) = sorting_matrix[sorter_name]
+        for recording in recordings:
+            yield SortingJob(
+                recording_name   = recording.recording_name,
+                recording_uri    = recording.recording_uri,
+                ground_truth_uri = recording.ground_truth_uri,
+                study_name       = recording.study_name,
+                sorter_name      = sorter.sorter_name,
+                params           = sorter.sorting_parameters,
+                sorting_job      = queue_sort(sorter, recording)
+            )
 
 def make_output_record(job: SortingJob) -> OutputRecord:
     errored = job.sorting_job.status == "error"
@@ -295,20 +309,6 @@ def output_records(results: List[str], std_args: StandardArgs) -> None:
             json.dump(results, file, indent=2)
     else:
         print(json.dumps(results, indent=4))
-
-def sorting_loop(sorting_matrix: SortingMatrixDict) -> Generator[SortingJob, None, None]:
-    for sorter_name in sorting_matrix.keys():
-        (sorter, recordings) = sorting_matrix[sorter_name]
-        for recording in recordings:
-            yield SortingJob(
-                recording_name   = recording.recording_name,
-                recording_uri    = recording.recording_uri,
-                ground_truth_uri = recording.ground_truth_uri,
-                study_name       = recording.study_name,
-                sorter_name      = sorter.sorter_name,
-                params           = sorter.sorting_parameters,
-                sorting_job      = queue_sort(sorter, recording)
-            )
 
 def main():
     (args, std_args) = init_configuration()
