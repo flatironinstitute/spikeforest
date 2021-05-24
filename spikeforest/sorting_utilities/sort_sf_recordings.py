@@ -38,6 +38,7 @@ def init_configuration() -> Tuple[Params, StandardArgs]:
         sorter_spec_file  = sortings_args["sorter_spec_file"],
         workspace_uri     = workspace_uri
     )
+    print(f"Using workspace uri {params.workspace_uri}")
     return (params, std_args)
 
 def remove_preexisting_records(matrix: SortingMatrixDict, w_uri: str) -> SortingMatrixDict:
@@ -46,7 +47,7 @@ def remove_preexisting_records(matrix: SortingMatrixDict, w_uri: str) -> Sorting
     for sorter_name in matrix.keys():
         (sorter, recording_list) = matrix[sorter_name]
         for recording in recording_list:
-            (_, gt_label, s_label) = get_labels(recording.study_name, recording.recording_name, GROUND_TRUTH_URI_KEY, sorter_name)
+            (_, gt_label, s_label) = get_labels(recording.study_name, recording.recording_name, TRUE_SORT_LABEL, sorter_name)
             (_, sorting_exists) = sortings_are_in_workspace(workspace, gt_label, s_label)
             if (sorting_exists): continue
             if sorter_name not in new_matrix:
@@ -93,7 +94,7 @@ def hi_post_result_to_workspace(
                                 entry.sorting_job)
     (r_label, gt_label, s_label) = get_labels(entry.study_name,
                                               entry.recording_name,
-                                              GROUND_TRUTH_URI_KEY,
+                                              TRUE_SORT_LABEL,
                                               entry.sorter_name)
     R_id = get_known_recording_id(items.workspace, r_label)
     (gt_exists, sorting_exists) = sortings_are_in_workspace(items.workspace, gt_label, s_label)
