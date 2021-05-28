@@ -4,9 +4,9 @@ from typing import Any, Dict, List, Tuple, NamedTuple
 import hither2 as hi
 import labbox_ephys as le
 
-from spikeforest._common.calling_framework import GROUND_TRUTH_URI_KEY, StandardArgs, add_standard_args, call_cleanup, parse_shared_configuration, print_per_verbose
-from spikeforest.sorting_utilities.run_sortings import SortingMatrixEntry, init_sorting_args, parse_argsdict, load_study_records, parse_sorters, extract_hither_config, populate_sorting_matrix, sorting_loop, SortingJob, SortingMatrixDict, StudyRecord, StudySetsDict
-from spikeforest.sorting_utilities.prepare_workspace import FullRecordingEntry, add_entry_to_workspace, create_workspace, get_known_recording_id, get_labels, TRUE_SORT_LABEL, sortings_are_in_workspace
+from spikeforest._common.calling_framework import GROUND_TRUTH_URI_KEY, StandardArgs, add_standard_args, call_cleanup, parse_shared_configuration
+from spikeforest.sorting_utilities.run_sortings import SortingMatrixEntry, init_sorting_args, parse_argsdict, load_study_records, parse_sorters, extract_hither_config, populate_sorting_matrix, sorting_loop, SortingJob, SortingMatrixDict
+from spikeforest.sorting_utilities.prepare_workspace import FullRecordingEntry, add_entry_to_workspace, add_workspace_selection_args, establish_workspace, get_known_recording_id, get_labels, TRUE_SORT_LABEL, sortings_are_in_workspace
 
 class Params(NamedTuple):
     study_source_file: str
@@ -23,16 +23,13 @@ def init_configuration() -> Tuple[Params, StandardArgs]:
     description = "Runs all known sorters against configured SpikeForest recordings, and loads the " + \
         "results into a (new or existing) workspace for display."
     parser = ArgumentParser(description=description)
-    parser.add_argument('--workspace-uri', '-W', action="store", default=None,
-        help="URI of workspace to add data to. If None (default), a new workspace will be created.")
+    parser = add_workspace_selection_args(parser)
     parser = init_sorting_args(parser)
     parser = add_standard_args(parser)
     parsed = parser.parse_args()
     sortings_args = parse_argsdict(parsed)
     std_args = parse_shared_configuration(parsed)
-    workspace_uri = parsed.workspace_uri
-    if workspace_uri is None:
-        workspace_uri = create_workspace()
+    workspace_uri = establish_workspace(parsed)
     params = Params(
         study_source_file = sortings_args["study_source_file"],
         sorter_spec_file  = sortings_args["sorter_spec_file"],

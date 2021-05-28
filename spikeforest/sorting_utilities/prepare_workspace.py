@@ -44,8 +44,7 @@ def init() -> Params:
     return parse_workspace_params(parsed)
 
 def init_workspace_args(parser: ArgumentParser) -> ArgumentParser:
-    parser.add_argument('--workspace-uri', '-W', action='store', default=None,
-        help="URI of workspace to add data to. If None (default), a new workspace will be created.")
+    parser = add_workspace_selection_args(parser)
     parser.add_argument('--sortings-file', '-s', action='store', default=None,
         help="Path to sortings file.")
     parser.add_argument('--sortings-file-kachery-uri', '-k', action='store', default=None,
@@ -55,10 +54,36 @@ def init_workspace_args(parser: ArgumentParser) -> ArgumentParser:
         help="If set, script will only parse the input files and display the workspace commands it would have run.")
     return parser
 
+def add_workspace_selection_args(parser: ArgumentParser) -> ArgumentParser:
+    parser.add_argument('--workspace-uri', '-W', action='store', default=None,
+        help="URI of workspace to add data to.")
+    parser.add_argument('--create-new-workspace', action='store_true', default=False,
+        help="If create-new-workspace is set and workspace-uri is not set, then a new " +
+             "workspace will be created. Setting both results in an error.")
+    return parser
+
+def establish_workspace(parsed: Namespace) -> str:
+    if parsed.create_new_workspace:
+        if parsed.workspace_uri is not None:
+            raise Exception("Error: create-new-workspace flag and workspace-uri flag both set. Aborting.")
+        return create_workspace()
+    if parsed.workspace_uri is None:
+        raise Exception("Error: You must provide either a valid workspace URI or the create-new-workspace flag.")
+    workspace = le.load_workspace(parsed.workspace_uri)
+    if workspace == None:
+        raise Exception("Error: Requested workspace URI is invalid.")
+    return workspace.get_uri()
+
+def create_workspace() -> str:
+    workspace = le.create_workspace(label='sortingview-default')
+    kp.set('sortingview-default-workspace', workspace.uri)
+    return workspace.uri
+
 def parse_workspace_params(parsed: Namespace) -> Params:
-    workspace_uri = parsed.workspace_uri
-    if workspace_uri is None and not parsed.dry_run:
-        workspace_uri = create_workspace()
+    if parsed.dry_run:
+        workspace_uri = parsed.workspace_uri
+    else:
+        workspace_uri = establish_workspace(parsed)
     if ((parsed.sortings_file is None and parsed.sortings_file_kachery_uri is None)
          or (parsed.sortings_file is not None and parsed.sortings_file_kachery_uri is not None)):
         raise Exception("Exactly one of sortings_file and sortings_file_kachery_uri must be set.")
@@ -68,11 +93,6 @@ def parse_workspace_params(parsed: Namespace) -> Params:
     else:
         sortings = kp.load_json(parsed.sortings_file_kachery_uri)
     return Params(workspace_uri, sortings, parsed.dry_run)
-
-def create_workspace() -> str:
-    workspace = le.create_workspace(label='sortingview-default')
-    kp.set('sortingview-default-workspace', workspace.uri)
-    return workspace.uri
 
 def get_known_recording_id(workspace: Union[le.Workspace, None], recording_label: str) -> str:
     if workspace is None: return None
