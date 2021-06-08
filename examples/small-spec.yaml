@@ -1,0 +1,20 @@
+studysets: sha1://54d9ed77a2aa788b9ab67977476c2b51adb8a2c5/studysets.json
+studyset_names:
+- PAIRED_KAMPFF
+spike_sorters:
+- name: SpykingCircus
+  params: {}
+  studysets:
+  - PAIRED_KAMPFF
+- name: MountainSort4
+  params: {}
+  studysets:
+  - PAIRED_KAMPFF
+- name: Kilosort2
+  params: {}
+  studysets:
+  - PAIRED_KAMPFF
+- name: Kilosort3
+  params: {}
+  studysets:
+  - PAIRED_KAMPFF

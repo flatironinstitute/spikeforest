@@ -5,11 +5,21 @@ import kachery_p2p as kp
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 
+class num_workers_hook(hi.RuntimeHook):
+    def precontainer(self, context: hi.PreContainerContext):
+        # context.kwargs can also be used to pull in variable values
+        # setting environment variables to ensure we are using only one thread
+        context.set_env('NUM_WORKERS', '1')
+        context.set_env('MKL_NUM_THREADS', '1')
+        context.set_env('NUMEXPR_NUM_THREADS', '1')
+        context.set_env('OMP_NUM_THREADS', '1')
+
 @hi.function(
     'mountainsort4_wrapper1', '0.1.0',
     image=hi.DockerImageFromScript(name='magland/mountainsort4', dockerfile=f'{thisdir}/docker/Dockerfile'),
-    modules=['labbox_ephys', 'labbox'],
-    kachery_support=True
+    modules=['labbox_ephys', 'labbox', 'spikeforest'],
+    kachery_support=True,
+    runtime_hooks=[num_workers_hook()]
 )
 def mountainsort4_wrapper1(
     recording_object: dict,
