@@ -1,11 +1,11 @@
-import kachery_p2p as kp
+import kachery_client as kc
 import pandas as pd
-import labbox_ephys as le
+import sortingview as sv
 import spikeextractors as se
 
 def main():
     # Load the index of SpikeForest sorting outputs into a pandas dataframe
-    x = kp.load_json('sha1://52f24579bb2af1557ce360ed5ccc68e480928285/file.txt?manifest=5bfb2b44045ac3e9bd2a8fe54ef67aa932844f58')
+    x = kc.load_json('sha1://52f24579bb2af1557ce360ed5ccc68e480928285/file.txt?manifest=5bfb2b44045ac3e9bd2a8fe54ef67aa932844f58')
     df = pd.DataFrame(x)
     print(x[0].keys())
 
@@ -27,7 +27,7 @@ def main():
                 'samplerate': 30000
             }
         }
-        sorting = le.LabboxEphysSortingExtractor(sorting_object)
+        sorting = sv.LabboxEphysSortingExtractor(sorting_object)
         print(f'=========================================================')
         print(f'{study_name}/{recording_name} {sorter_name}')
         print(f'Num. units: {len(sorting.get_unit_ids())}')

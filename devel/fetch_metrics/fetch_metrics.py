@@ -8,8 +8,8 @@ from typing import Any, Dict, List, TypedDict, cast
 from spikeforest._common.calling_framework import add_standard_args, call_cleanup, extract_hither_config, parse_shared_configuration, print_per_verbose
 import spikeextractors as se
 import hither2 as hi
-import kachery_p2p as kp
-import labbox_ephys as le
+import kachery_client as kc
+import sortingview as sv
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 spiketoolkit_image = hi.DockerImageFromScript(name='magland/spiketoolkit', dockerfile=f'{thisdir}/docker/Dockerfile')
@@ -72,7 +72,7 @@ def init_configuration():
     return (args, std_args)
 
 def load_sortings(sortingsfile: str) -> List[Dict[str, Any]]:
-    hydrated_sortings = kp.load_json(sortingsfile)
+    hydrated_sortings = kc.load_json(sortingsfile)
     assert hydrated_sortings is not None
     return cast(List[Dict[str, Any]], hydrated_sortings)
 
@@ -103,8 +103,8 @@ def compare_with_ground_truth(sorting: se.SortingExtractor, gt_sorting: se.Sorti
 def compute_quality_metrics_hi(recording_uri, gt_uri, firings_uri):
     # gt_uri is not needed, but including it lets this method and the ground truth comparison use the same consistent kwargs parameters.
     print_per_verbose(1, f"Computing quality metrics for recording {recording_uri} and sorting {firings_uri}. Fetching Extractors...")
-    print_per_verbose(2, f"Execting le.LabboxEphysRecordingExtractor({recording_uri})")
-    recording = le.LabboxEphysRecordingExtractor(recording_uri)
+    print_per_verbose(2, f"Execting sv.LabboxEphysRecordingExtractor({recording_uri})")
+    recording = sv.LabboxEphysRecordingExtractor(recording_uri)
     sample_rate = recording.get_sampling_frequency()
     print_per_verbose(2, f"Found sample rate {sample_rate}.")
     sorting_object = {
@@ -114,8 +114,8 @@ def compute_quality_metrics_hi(recording_uri, gt_uri, firings_uri):
             'samplerate': sample_rate
         }
     }
-    print_per_verbose(2, f"(Comparison evaluation) Executing le.labboxEphysSortingExtractor({json.dumps(sorting_object)})")
-    sorting = le.LabboxEphysSortingExtractor(sorting_object)
+    print_per_verbose(2, f"(Comparison evaluation) Executing sv.LabboxEphysSortingExtractor({json.dumps(sorting_object)})")
+    sorting = sv.LabboxEphysSortingExtractor(sorting_object)
     print_per_verbose(2, f"Executing quality metrics")
     try:
         qm = compute_quality_metrics(recording, sorting)
@@ -133,11 +133,11 @@ def compute_quality_metrics_hi(recording_uri, gt_uri, firings_uri):
 def compute_ground_truth_comparison_hi(recording_uri, gt_uri, firings_uri):
     print_per_verbose(1, f"Computing ground truth comparison for ground truth {gt_uri} and sorting {firings_uri} (recording {recording_uri})")
     print_per_verbose(3, f'Fetching sample rate from {recording_uri}')
-    recording = le.LabboxEphysRecordingExtractor(recording_uri)
+    recording = sv.LabboxEphysRecordingExtractor(recording_uri)
     sample_rate = recording.get_sampling_frequency()
     print_per_verbose(3, f'Got sample rate {sample_rate}')
     print_per_verbose(2, f"Building sorting object for ground truth {gt_uri}")
-    gt_firings = kp.load_json(gt_uri)['firings']
+    gt_firings = kc.load_json(gt_uri)['firings']
     print_per_verbose(2, f"Got ground truth firings {gt_firings}")
     gt_sorting_obj = {
         'sorting_format': 'mda',
@@ -146,7 +146,7 @@ def compute_ground_truth_comparison_hi(recording_uri, gt_uri, firings_uri):
             'samplerate': sample_rate
         }
     }
-    gt_sorting = le.LabboxEphysSortingExtractor(gt_sorting_obj)
+    gt_sorting = sv.LabboxEphysSortingExtractor(gt_sorting_obj)
     print_per_verbose(2, f"Building sorting object for sorting with firings {firings_uri}")
     sorting_obj = {
         'sorting_format': 'mda',
@@ -155,7 +155,7 @@ def compute_ground_truth_comparison_hi(recording_uri, gt_uri, firings_uri):
             'samplerate': sample_rate
         }
     }
-    sorting = le.LabboxEphysSortingExtractor(sorting_obj)
+    sorting = sv.LabboxEphysSortingExtractor(sorting_obj)
     print_per_verbose(2, f"Executing ground-truth comparison")
     try:
         gt = compare_with_ground_truth(sorting, gt_sorting)

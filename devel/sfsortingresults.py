@@ -1,6 +1,6 @@
-import kachery_p2p as kp
+import kachery_client as kc
 import pandas as pd
-import labbox_ephys as le
+import sortingview as sv
 import numpy as np
 
 _sorting_results_uri = 'sha1://52f24579bb2af1557ce360ed5ccc68e480928285/file.txt?manifest=5bfb2b44045ac3e9bd2a8fe54ef67aa932844f58'
@@ -21,7 +21,7 @@ class SFSortingResults:
             self._sorting_results_uri = _sorting_results_uri
         else:
             self._sorting_results_uri = sorting_results_uri
-        x = kp.load_json(self._sorting_results_uri)
+        x = kc.load_json(self._sorting_results_uri)
         self._df = pd.DataFrame(x)
         print(f"Found {len(self._df)} sorting outputs")
 
@@ -49,7 +49,7 @@ class SFSortingResults:
                 'samplerate': recording.get_sampling_frequency()
             }
         }
-        sorting = le.LabboxEphysSortingExtractor(sorting_object)
+        sorting = sv.LabboxEphysSortingExtractor(sorting_object)
 
         return sorting
 
@@ -63,7 +63,7 @@ class SFSortingResults:
         assert len(dataset) > 0, f"Recording '{recording_name}' not found"
 
         firings_uri = dataset.iloc[0]["sortingTrueUri"]
-        sorting = le.LabboxEphysSortingExtractor(firings_uri)
+        sorting = sv.LabboxEphysSortingExtractor(firings_uri)
 
         return sorting
 
@@ -77,7 +77,7 @@ class SFSortingResults:
         assert len(dataset) > 0, f"Recording '{recording_name}' not found"
 
         recording_uri = dataset.iloc[0]["recordingUri"]
-        recording = le.LabboxEphysRecordingExtractor(recording_uri, download=download)
+        recording = sv.LabboxEphysRecordingExtractor(recording_uri, download=download)
 
         return recording
 

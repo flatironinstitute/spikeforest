@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from typing import Any, Dict, List, Tuple, NamedTuple
 
 import hither2 as hi
-import labbox_ephys as le
+import sortingview as sv
 
 from spikeforest._common.calling_framework import GROUND_TRUTH_URI_KEY, StandardArgs, add_standard_args, call_cleanup, parse_shared_configuration
 from spikeforest.sorting_utilities.run_sortings import SortingMatrixEntry, init_sorting_args, parse_argsdict, load_study_records, parse_sorters, extract_hither_config, populate_sorting_matrix, sorting_loop, SortingJob, SortingMatrixDict
@@ -14,10 +14,10 @@ class Params(NamedTuple):
     workspace_uri:     str
 
 class HydratedObjects(NamedTuple):
-    workspace: le.Workspace
-    recording: le.LabboxEphysRecordingExtractor
-    gt_sort:   le.LabboxEphysSortingExtractor
-    sorting:   le.LabboxEphysSortingExtractor
+    workspace: sv.Workspace
+    recording: sv.LabboxEphysRecordingExtractor
+    gt_sort:   sv.LabboxEphysSortingExtractor
+    sorting:   sv.LabboxEphysSortingExtractor
 
 def init_configuration() -> Tuple[Params, StandardArgs]:
     description = "Runs all known sorters against configured SpikeForest recordings, and loads the " + \
@@ -39,7 +39,7 @@ def init_configuration() -> Tuple[Params, StandardArgs]:
     return (params, std_args)
 
 def remove_preexisting_records(matrix: SortingMatrixDict, w_uri: str) -> SortingMatrixDict:
-    workspace = le.load_workspace(w_uri)
+    workspace = sv.load_workspace(w_uri)
     new_matrix: SortingMatrixDict = {}
     for sorter_name in matrix.keys():
         (sorter, recording_list) = matrix[sorter_name]
@@ -53,11 +53,11 @@ def remove_preexisting_records(matrix: SortingMatrixDict, w_uri: str) -> Sorting
     return new_matrix
 
 def populate_extractors(workspace_uri: str, rec_uri: str, gt_uri: str, sorting_result: Any) -> HydratedObjects:
-    workspace = le.load_workspace(workspace_uri)
-    recording = le.LabboxEphysRecordingExtractor(rec_uri, download=True)
+    workspace = sv.load_workspace(workspace_uri)
+    recording = sv.LabboxEphysRecordingExtractor(rec_uri, download=True)
     sample_rate = recording.get_sampling_frequency()
-    gt_sort = le.LabboxEphysSortingExtractor(gt_uri, samplerate=sample_rate)
-    sorting = le.LabboxEphysSortingExtractor(sorting_result, samplerate=sample_rate)
+    gt_sort = sv.LabboxEphysSortingExtractor(gt_uri, samplerate=sample_rate)
+    sorting = sv.LabboxEphysSortingExtractor(sorting_result, samplerate=sample_rate)
     return HydratedObjects(
         workspace = workspace,
         recording = recording,

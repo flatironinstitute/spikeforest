@@ -18,7 +18,7 @@ See [labbox-ephys](https://github.com/flatironinstitute/labbox-ephys) for more i
 **Step 3** Import a recording/sorting pair into the default workspace using a Python script
 
 ```python
-import labbox_ephys as le
+import sortingview as sv
 
 # Select a recording/sorting pair from SpikeForest
 recording_name = 'paired_kampff/2014_11_25_Pair_3_0'
@@ -26,11 +26,11 @@ recording_uri = 'sha1://a205f87cef8b7f86df7a09cddbc79a1fbe5df60f/2014_11_25_Pair
 sorting_uri = 'sha1://c656add63d85a17840980084a1ff1cdc662a2cd5/2014_11_25_Pair_3_0.firings_true.json'
 
 # Load the recording and sorting objects
-recording = le.LabboxEphysRecordingExtractor(recording_uri, download=False)
-sorting_true = le.LabboxEphysSortingExtractor(sorting_uri)
+recording = sv.LabboxEphysRecordingExtractor(recording_uri, download=False)
+sorting_true = sv.LabboxEphysSortingExtractor(sorting_uri)
 
 # Load the default workspace and import the recording/sorting
-workspace = le.load_workspace()
+workspace = sv.load_workspace()
 R_id = workspace.add_recording(recording=recording, label=recording_name)
 S_id = workspace.add_sorting(sorting=sorting_true, recording_id=R_id, label='true')
 ```

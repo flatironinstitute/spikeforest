@@ -11,8 +11,8 @@ from spikeforest._common.calling_framework import StandardArgs, add_standard_arg
 import spikeextractors as se
 import spikeforest as sf
 import hither2 as hi
-import kachery_p2p as kp
-import labbox_ephys as le
+import kachery_client as kc
+import sortingview as sv
 
 # Maps the sorter names (as they appear in the spec file) to the
 # wrapper functions exposed by this package.
@@ -170,7 +170,7 @@ def populate_sorting_matrix(study_matrix: SorterStudyMatrixDict, study_sets: Stu
     return detailed_matrix
 
 def load_study_records(study_set_file: str) -> StudySetsDict:
-    hydrated_sets = kp.load_json(study_set_file)
+    hydrated_sets = kc.load_json(study_set_file)
     assert hydrated_sets is not None
     study_sets: StudySetsDict = {}
     # Make a list of study_set lists, one per StudySet in the source json file.
@@ -246,7 +246,7 @@ def queue_sort(sorter: SorterRecord, recording: RecordingRecord) -> hi.Job:
         raise Exception(f'Sorter {sorter.sorter_name} was requested but is not recognized.')
     sort_fn = KNOWN_SORTERS[sorter.sorter_name]
 
-    base_recording = le.LabboxEphysRecordingExtractor(recording.recording_uri, download=True)
+    base_recording = sv.LabboxEphysRecordingExtractor(recording.recording_uri, download=True)
     params = {
         'recording_object': base_recording.object()
     }
@@ -272,9 +272,9 @@ def make_output_record(job: SortingJob) -> OutputRecord:
     if (errored):
         stored_sorting = None
     else:
-        sorting = le.LabboxEphysSortingExtractor(job.sorting_job.result.return_value)
-        stored_sorting = le.LabboxEphysSortingExtractor.store_sorting(sorting)
-    console = kp.store_json(job.sorting_job._console_lines)
+        sorting = sv.LabboxEphysSortingExtractor(job.sorting_job.result.return_value)
+        stored_sorting = sv.LabboxEphysSortingExtractor.store_sorting(sorting)
+    console = kc.store_json(job.sorting_job._console_lines)
     try:
         elapsed = job.sorting_job.timestamp_completed - job.sorting_job.timestamp_started
     except:

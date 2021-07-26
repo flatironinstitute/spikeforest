@@ -1,7 +1,7 @@
 import os
 from typing import Dict, List
 import hither2 as hi
-import kachery_p2p as kp
+import kachery_client as kc
 from spikeforest.sorters._matlab_license_hook import matlab_license_hook
 
 expected_kilosort3_commit = 'a1fccd9abf13ce5dc3340fae8050f9b1d0f8ab7a'
@@ -23,18 +23,18 @@ image = hi.DockerImageFromScript(
 def kilosort3_wrapper1(
     recording_object: dict,
 ) -> dict:
-    import labbox_ephys as le
+    import sortingview as sv
 
-    with kp.TemporaryDirectory(prefix='tmp_kilosort3') as tmpdir:
+    with kc.TemporaryDirectory(prefix='tmp_kilosort3') as tmpdir:
         ######################################################################################################################################################
         # Make sure kilosort is installed, compiled and at the right commit
         if os.getenv('HITHER_IN_CONTAINER') == '1':
-            kp.ShellScript(f'''
+            kc.ShellScript(f'''
             cd {tmpdir}/Kilosort3/CUDA
             mexGPUall
             ''').write(f'{tmpdir}/compile_ks.m')
 
-            compile_script = kp.ShellScript(f'''
+            compile_script = kc.ShellScript(f'''
             #!/bin/bash
             set -e
 
@@ -63,7 +63,7 @@ def kilosort3_wrapper1(
         for mex_path in mex_paths:
             if not os.path.isfile(mex_path):
                 raise Exception(f'Kilosort3 not compiled. File not found: {mex_path}')
-        scr = kp.ShellScript(f'''
+        scr = kc.ShellScript(f'''
         #!/bin/bash
         set -e
         cd {kilosort3_path}
@@ -78,7 +78,7 @@ def kilosort3_wrapper1(
             raise Exception(f'Git repo not at the expected commit: {expected_kilosort3_commit}')
         ######################################################################################################################################################
 
-        recording = le.LabboxEphysRecordingExtractor(recording_object)
+        recording = sv.LabboxEphysRecordingExtractor(recording_object)
     
     # Sorting
         print('Sorting...')
@@ -94,4 +94,4 @@ def kilosort3_wrapper1(
         print('#SF-SORTER-RUNTIME#{:.3f}#'.format(timer))
         sorting = sorter.get_result()
 
-        return le.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)
+        return sv.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)

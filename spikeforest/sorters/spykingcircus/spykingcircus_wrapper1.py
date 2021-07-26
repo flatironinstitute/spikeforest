@@ -1,6 +1,6 @@
 import os
 import hither2 as hi
-import kachery_p2p as kp
+import kachery_client as kc
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 
@@ -32,13 +32,13 @@ def spykingcircus_wrapper1(
     whitening_max_elts=1000,
     clustering_max_elts=10000
 ) -> dict:
-    import labbox_ephys as le
+    import sortingview as sv
     import spikesorters as ss
 
-    recording = le.LabboxEphysRecordingExtractor(recording_object)
+    recording = sv.LabboxEphysRecordingExtractor(recording_object)
     
     # Sorting
-    with kp.TemporaryDirectory(prefix='tmp_spykingcircus') as tmpdir:
+    with kc.TemporaryDirectory(prefix='tmp_spykingcircus') as tmpdir:
         sorter = ss.SpykingcircusSorter(
             recording=recording,
             output_folder=f'{tmpdir}/working',
@@ -63,4 +63,4 @@ def spykingcircus_wrapper1(
         print('#SF-SORTER-RUNTIME#{:.3f}#'.format(timer))
         sorting = sorter.get_result()
 
-        return le.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)
+        return sv.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)

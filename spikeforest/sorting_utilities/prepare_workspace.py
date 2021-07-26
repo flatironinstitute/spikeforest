@@ -2,8 +2,8 @@ from argparse import ArgumentParser, Namespace
 import json
 from typing import Any, Dict, Generator, List, NamedTuple, Set, Tuple, Union
 
-import labbox_ephys as le
-import kachery_p2p as kp
+import sortingview as sv
+import kachery_client as kc
 from spikeforest._common.calling_framework import print_per_verbose
 
 ## TODO: Need to do error checking on output ids?
@@ -25,9 +25,9 @@ class FullRecordingEntry(NamedTuple):
     ground_truth_label: str
     sorting_label: str
     R_id: str
-    recording: le.LabboxEphysRecordingExtractor
-    sorting_true: le.LabboxEphysSortingExtractor
-    sorting: le.LabboxEphysSortingExtractor
+    recording: sv.LabboxEphysRecordingExtractor
+    sorting_true: sv.LabboxEphysSortingExtractor
+    sorting: sv.LabboxEphysSortingExtractor
     gt_exists: bool
     sorting_exists: bool
 
@@ -69,14 +69,14 @@ def establish_workspace(parsed: Namespace) -> str:
         return create_workspace()
     if parsed.workspace_uri is None:
         raise Exception("Error: You must provide either a valid workspace URI or the create-new-workspace flag.")
-    workspace = le.load_workspace(parsed.workspace_uri)
+    workspace = sv.load_workspace(parsed.workspace_uri)
     if workspace == None:
         raise Exception("Error: Requested workspace URI is invalid.")
     return workspace.get_uri()
 
 def create_workspace() -> str:
-    workspace = le.create_workspace(label='sortingview-default')
-    kp.set('sortingview-default-workspace', workspace.uri)
+    workspace = sv.create_workspace(label='sortingview-default')
+    kc.set('sortingview-default-workspace', workspace.uri)
     return workspace.uri
 
 def parse_workspace_params(parsed: Namespace) -> Params:
@@ -91,17 +91,17 @@ def parse_workspace_params(parsed: Namespace) -> Params:
         with open(parsed.sortings_file) as fp:
             sortings = json.load(fp)
     else:
-        sortings = kp.load_json(parsed.sortings_file_kachery_uri)
+        sortings = kc.load_json(parsed.sortings_file_kachery_uri)
     return Params(workspace_uri, sortings, parsed.dry_run)
 
-def get_known_recording_id(workspace: Union[le.Workspace, None], recording_label: str) -> str:
+def get_known_recording_id(workspace: Union[sv.Workspace, None], recording_label: str) -> str:
     if workspace is None: return None
     for (_, v) in workspace._recordings.items():
         if v['recordingLabel'] == recording_label:
             return v['recordingId']
     return None
 
-def sortings_are_in_workspace(workspace: Union[le.Workspace, None], gt: str, comp: str) -> Tuple[bool, bool]:
+def sortings_are_in_workspace(workspace: Union[sv.Workspace, None], gt: str, comp: str) -> Tuple[bool, bool]:
     if workspace is None: return (False, False)
     sortings = [workspace._sortings[key]['sortingLabel'] for key in workspace._sortings.keys()]
     return (gt in sortings, comp in sortings)
@@ -112,14 +112,14 @@ def get_labels(study_name: str, recording_name: str, gt_token: str, sorter_name:
     sorting_label      = f'{sorter_name}/{recording_label}'
     return (recording_label, ground_truth_label, sorting_label)
 
-def populate_extractors(entry: RecordingEntry) -> Tuple[le.LabboxEphysRecordingExtractor, le.LabboxEphysSortingExtractor, le.LabboxEphysSortingExtractor]:
-    recording = le.LabboxEphysRecordingExtractor(entry.recording_uri, download=True)
+def populate_extractors(entry: RecordingEntry) -> Tuple[sv.LabboxEphysRecordingExtractor, sv.LabboxEphysSortingExtractor, sv.LabboxEphysSortingExtractor]:
+    recording = sv.LabboxEphysRecordingExtractor(entry.recording_uri, download=True)
     sample_rate = recording.get_sampling_frequency()
-    sorting_true = le.LabboxEphysSortingExtractor(entry.sorting_true_uri, samplerate=sample_rate)
-    sorting = le.LabboxEphysSortingExtractor(entry.sorting_object, samplerate=sample_rate)
+    sorting_true = sv.LabboxEphysSortingExtractor(entry.sorting_true_uri, samplerate=sample_rate)
+    sorting = sv.LabboxEphysSortingExtractor(entry.sorting_object, samplerate=sample_rate)
     return (recording, sorting_true, sorting)
 
-def add_entry_to_workspace(re: FullRecordingEntry, workspace: le.Workspace) -> None:
+def add_entry_to_workspace(re: FullRecordingEntry, workspace: sv.Workspace) -> None:
     print_per_verbose(3, f"Hit live-load step. Current re values: r-id {re.R_id}, gt-exists: {re.gt_exists} sorting-exists: {re.sorting_exists}")
     R_id = re.R_id
     if R_id is None:
@@ -163,7 +163,7 @@ def parse_sortings(sortings: List[Any]) -> Generator[RecordingEntry, None, None]
 
 def main():
     (workspace_uri, sortings_json, dry_run) = init()
-    workspace = None if workspace_uri is None else le.load_workspace(workspace_uri)
+    workspace = None if workspace_uri is None else sv.load_workspace(workspace_uri)
     if workspace_uri is None and dry_run:
         workspace_uri = "(Dry run, no actual workspace written to)"
     loaded = 0

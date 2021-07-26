@@ -1,7 +1,7 @@
 import os
 import time
 import hither2 as hi
-import kachery_p2p as kp
+import kachery_client as kc
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 
@@ -36,14 +36,14 @@ def mountainsort4_wrapper1(
     # test import
     import mountainsort4 as ms4
 
-    import labbox_ephys as le
+    import sortingview as sv
     import spiketoolkit as st
 
-    recording = le.LabboxEphysRecordingExtractor(recording_object)
+    recording = sv.LabboxEphysRecordingExtractor(recording_object)
     
     # Sorting
     print('Sorting...')
-    with kp.TemporaryDirectory(prefix='tmp_mountainsort4') as tmpdir:
+    with kc.TemporaryDirectory(prefix='tmp_mountainsort4') as tmpdir:
         num_workers = 1
 
         # preprocessing
@@ -77,4 +77,4 @@ def mountainsort4_wrapper1(
         elapsed = time.time() - timer
         print('#SF-SORTER-RUNTIME#{:.3f}#'.format(timer))
 
-        return le.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)
+        return sv.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)
