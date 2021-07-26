@@ -2,7 +2,7 @@
 
 **Step 1**: Install prerequisites
 
-* Install and set up `kachery-p2p` and `spikeforest` as in [these instructions](./download-spikeforest-data.md).
+* Install and set up the kachery daemon and `spikeforest` as in [these instructions](./download-spikeforest-data.md).
 
 * Install Singularity (3.6 or later)
 

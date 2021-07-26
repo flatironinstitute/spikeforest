@@ -1,4 +1,4 @@
-## Joining the spikeforest-download kachery-p2p channel
+## Joining the spikeforest channel
 
 After you have set up and installed a kachery daemon on your computer, you can join the spikeforest channel by configuring your node on kacheryhub.org.
 

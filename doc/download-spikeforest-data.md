@@ -25,7 +25,7 @@ You can browse the [spikeforest_recordings](https://github.com/flatironinstitute
 
 ## Step 4: Load recording/sorting into Python
 
-Load the sorting and recording into SpikeInterface objects via labbox-ephys:
+Load the sorting and recording into SpikeInterface objects via sortingview:
 
 ```python
 import sortingview as sv
@@ -50,7 +50,7 @@ print(f'Unit {unit_ids[0]} has {len(spike_train)} events')
 
 The `download=False` means that that we don't want to download the entire recording upfront (just lazy load it on demand). If you set this to True, the entire recording will be downloaded to your kachery storage directory.
 
-You can now interact with these Python objects using tools from [SpikeInterface](https://github.com/spikeinterface) and [labbox-ephys](https://github.com/flatironinstitute/labbox-ephys).
+You can now interact with these Python objects using tools from [SpikeInterface](https://github.com/spikeinterface).
 
 ## Loading entire study sets
 

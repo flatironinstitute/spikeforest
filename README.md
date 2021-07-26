@@ -10,7 +10,7 @@ Spike sorting benchmarking system.
 
 [How can I download the SpikeForest sorting outputs?](./doc/download-spikeforest-sorting-outputs.md)
 
-[How can I visualize a SpikeForest sorting using labbox-ephys?](./doc/labbox-ephys.md)
+[How can I visualize a SpikeForest sorting using sortingview?](./doc/sortingview.md)
 
 [How can I run containerized spike sorting on my own computer?](./doc/spike-sorting.md)
 
