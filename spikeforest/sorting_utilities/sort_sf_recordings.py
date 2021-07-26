@@ -67,7 +67,7 @@ def populate_extractors(workspace_uri: str, rec_uri: str, gt_uri: str, sorting_r
 
 @hi.function(
     'hi_post_result_to_workspace', '0.1.0',
-    modules=['labbox_ephys', 'spikeforest'],
+    modules=['sortingview', 'spikeforest'],
     kachery_support=True
 )
 def hi_post_result_to_workspace(

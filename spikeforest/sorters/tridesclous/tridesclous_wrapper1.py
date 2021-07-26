@@ -7,7 +7,7 @@ thisdir = os.path.dirname(os.path.realpath(__file__))
 @hi.function(
     'tridesclous_wrapper1', '0.1.0',
     image=hi.DockerImageFromScript(name='magland/tridesclous', dockerfile=f'{thisdir}/docker/Dockerfile'),
-    modules=['labbox_ephys', 'labbox', 'spikeforest'],
+    modules=['sortingview', 'spikeforest'],
     kachery_support=True
 )
 def tridesclous_wrapper1(

@@ -15,7 +15,7 @@ image = hi.DockerImageFromScript(
 @hi.function(
     'kilosort3_wrapper1', '0.1.1',
     image=image,
-    modules=['labbox_ephys', 'labbox', 'spikeforest'],
+    modules=['sortingview', 'spikeforest'],
     kachery_support=True,
     nvidia_support=True,
     runtime_hooks=[matlab_license_hook()]

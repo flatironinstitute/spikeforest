@@ -16,7 +16,7 @@ class num_workers_hook(hi.RuntimeHook):
 @hi.function(
     'spykingcircus_wrapper1', '0.1.4',
     image=hi.DockerImageFromScript(name='magland/spyking-circus', dockerfile=f'{thisdir}/docker/Dockerfile'),
-    modules=['labbox_ephys', 'labbox', 'spikeforest'],
+    modules=['sortingview', 'spikeforest'],
     kachery_support=True,
     runtime_hooks=[num_workers_hook()]
 )

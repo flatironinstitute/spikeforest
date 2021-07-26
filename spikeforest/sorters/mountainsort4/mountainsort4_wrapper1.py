@@ -17,7 +17,7 @@ class num_workers_hook(hi.RuntimeHook):
 @hi.function(
     'mountainsort4_wrapper1', '0.1.0',
     image=hi.DockerImageFromScript(name='magland/mountainsort4', dockerfile=f'{thisdir}/docker/Dockerfile'),
-    modules=['labbox_ephys', 'labbox', 'spikeforest'],
+    modules=['sortingview', 'spikeforest'],
     kachery_support=True,
     runtime_hooks=[num_workers_hook()]
 )

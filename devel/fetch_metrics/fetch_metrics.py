@@ -98,7 +98,7 @@ def compare_with_ground_truth(sorting: se.SortingExtractor, gt_sorting: se.Sorti
     'compute_quality_metrics_hi', '0.1.1',
     image=spiketoolkit_image,
     kachery_support=True,
-    modules=['labbox_ephys', 'labbox', 'spikeforest']
+    modules=['sortingview', 'spikeforest']
 )
 def compute_quality_metrics_hi(recording_uri, gt_uri, firings_uri):
     # gt_uri is not needed, but including it lets this method and the ground truth comparison use the same consistent kwargs parameters.
@@ -128,7 +128,7 @@ def compute_quality_metrics_hi(recording_uri, gt_uri, firings_uri):
     'compute_ground_truth_comparison_hi', '0.1.1',
     image=spiketoolkit_image,
     kachery_support=True,
-    modules=['labbox_ephys', 'labbox', 'spikeforest']
+    modules=['sortingview', 'spikeforest']
 )
 def compute_ground_truth_comparison_hi(recording_uri, gt_uri, firings_uri):
     print_per_verbose(1, f"Computing ground truth comparison for ground truth {gt_uri} and sorting {firings_uri} (recording {recording_uri})")
