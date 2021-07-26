@@ -6,6 +6,7 @@ setup(
     install_requires=[
         'kachery-client>=1.0.12',
         'hither>=0.7.0',
-        'sortingview>=0.2.33'
+        'sortingview>=0.2.33',
+        'spikeextractors>=0.9.6'
     ]
 )
