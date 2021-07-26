@@ -4,8 +4,8 @@ setup(
     packages=find_packages(),
     scripts=[],
     install_requires=[
-        'kachery-p2p>=0.8.21',
-        'hither>=0.5.18',
-        'labbox-ephys>=0.5.13'
+        'kachery-client>=1.0.12',
+        'hither>=0.7.0',
+        'sortingview>=0.2.33'
     ]
 )
