@@ -14,6 +14,12 @@ Spike sorting benchmarking system.
 
 [How can I run containerized spike sorting on my own computer?](./doc/spike-sorting.md)
 
+---
+
+Also, see [Truespikes](https://github.com/michaeljohnclancy/truespikes) from Michael Clancy for browsing and retrieval of raw recordings, ground truth firings and the associated sorting results using jupyter notebooks.
+
+---
+
 ## Questions with answers in progress
 
 * What is SpikeForest?
