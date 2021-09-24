@@ -8,12 +8,12 @@ You can load the SpikeForest recordings and ground-truth sortings directly into 
 
 **Step 1b**: [Join the spikeforest channel](./join-spikeforest-download-channel.md)
 
-## Step 2: Install spikeforest
+## Step 2: Install SortingView
 
-Install the most recent version of spikeforest:
+Install the most recent version of sortingview:
 
 ```
-pip install --upgrade spikeforest
+pip install --upgrade sortingview
 ```
 
 ## Step 3: Select a recording for download
