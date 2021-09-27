@@ -4,7 +4,7 @@ You can load the SpikeForest recordings and ground-truth sortings directly into 
 
 ## Step 1: Kachery setup
 
-**Step 1a**: [Set up and run a kachery daemon](https://github.com/kacheryhub/kachery-doc/blob/main/doc/kacheryhub-markdown/hostKacheryNode.md)
+**Step 1a**: [Set up and run a kachery daemon](https://github.com/kacheryhub/kachery-doc/blob/main/doc/hostKacheryNode.md)
 
 **Step 1b**: [Join the spikeforest channel](./join-spikeforest-download-channel.md)
 
