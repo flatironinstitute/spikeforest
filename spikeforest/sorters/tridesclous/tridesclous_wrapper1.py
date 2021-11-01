@@ -37,4 +37,4 @@ def tridesclous_wrapper1(
         print('#SF-SORTER-RUNTIME#{:.3f}#'.format(timer))
         sorting = sorter.get_result()
 
-        return sv.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)
+        return sv.LabboxEphysSortingExtractor.store_sorting(sorting=sorting).object()

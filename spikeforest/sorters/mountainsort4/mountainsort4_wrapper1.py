@@ -77,4 +77,4 @@ def mountainsort4_wrapper1(
         elapsed = time.time() - timer
         print('#SF-SORTER-RUNTIME#{:.3f}#'.format(timer))
 
-        return sv.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)
+        return sv.LabboxEphysSortingExtractor.store_sorting(sorting=sorting).object()

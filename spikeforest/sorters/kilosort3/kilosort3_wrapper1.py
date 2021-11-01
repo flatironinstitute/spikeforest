@@ -80,7 +80,7 @@ def kilosort3_wrapper1(
 
         recording = sv.LabboxEphysRecordingExtractor(recording_object)
     
-    # Sorting
+        # Sorting
         print('Sorting...')
         sorter = ss.Kilosort3Sorter(
             recording=recording,
@@ -94,4 +94,4 @@ def kilosort3_wrapper1(
         print('#SF-SORTER-RUNTIME#{:.3f}#'.format(timer))
         sorting = sorter.get_result()
 
-        return sv.LabboxEphysSortingExtractor.store_sorting(sorting=sorting)
+        return sv.LabboxEphysSortingExtractor.store_sorting(sorting=sorting).object()
