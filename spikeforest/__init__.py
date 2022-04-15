@@ -3,3 +3,8 @@ from .sorters.tridesclous import tridesclous_wrapper1
 from .sorters.mountainsort4 import mountainsort4_wrapper1
 from .sorters.kilosort2 import kilosort2_wrapper1
 from .sorters.kilosort3 import kilosort3_wrapper1
+
+from .load_spikeforest_recordings.load_spikeforest_recordings import load_spikeforest_recordings
+from .load_spikeforest_recordings.load_spikeforest_recording import load_spikeforest_recording
+from .load_spikeforest_sorting_outputs.load_spikeforest_sorting_outputs import load_spikeforest_sorting_outputs
+from .load_spikeforest_sorting_outputs.load_spikeforest_sorting_output import load_spikeforest_sorting_output
