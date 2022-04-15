@@ -2,11 +2,13 @@
 
 > :warning: This project is under construction.
 
-Spike sorting benchmarking system.
+Spike sorting benchmarking system. See our [eLife paper](https://elifesciences.org/articles/55167).
 
-This Python project allows you to download SpikeForest recordings, the associated ground truth sortings, and the outputs of the spike sorting runs, and load these into SpikeInterface recording and sorting extractors.
+This Python project allows you to download a subset of the [SpikeForest](http://spikeforest.flatironinstitute.org/) recordings, the associated ground truth sortings, and the outputs of the spike sorting runs, and load these into SpikeInterface recording and sorting extractors.
 
-All data are pinned to IPFS and available on the kachery-cloud network.
+> Note: only a subset of the SpikeForest recordings are available at this time.
+
+All data are pinned to [IPFS](https://ipfs.io/) and available on the [kachery-cloud](https://github.com/scratchrealm/kachery-cloud) network.
 
 # Setup
 
