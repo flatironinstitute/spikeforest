@@ -1,6 +1,5 @@
 from copy import deepcopy
-import sortingview as sv
-from spikeinterface.core.old_api_utils import OldToNewRecording, OldToNewSorting
+from ..load_extractors import load_recording_extractor, load_sorting_extractor
 
 
 class SFRecording:
@@ -37,6 +36,6 @@ class SFRecording:
     def recording_object(self):
         return deepcopy(self._recording_record['recordingObject'])
     def get_sorting_true_extractor(self):
-        return OldToNewSorting(sv.LabboxEphysSortingExtractor(self.sorting_true_object))
+        return load_sorting_extractor(self.sorting_true_object)
     def get_recording_extractor(self):
-        return OldToNewRecording(sv.LabboxEphysRecordingExtractor(self.recording_object, download=True))
+        return load_recording_extractor(self.recording_object)

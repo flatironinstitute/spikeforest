@@ -1,7 +1,6 @@
 from copy import deepcopy
 import kachery_cloud as kcl
-import sortingview as sv
-from spikeinterface.core.old_api_utils import OldToNewRecording, OldToNewSorting
+from ..load_extractors import load_sorting_extractor
 
 
 class SFSortingOutput:
@@ -43,4 +42,4 @@ class SFSortingOutput:
     def get_sorting_extractor(self):
         sorting_object = self.sorting_object
         if sorting_object is None: return None
-        return OldToNewSorting(sv.LabboxEphysSortingExtractor(sorting_object))
+        return load_sorting_extractor(sorting_object)
