@@ -1,5 +1,6 @@
 tmp
 tmp-test*
+mountainsort4_output
 
 # singularity images
 *.sif
