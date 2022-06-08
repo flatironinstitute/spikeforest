@@ -3,7 +3,16 @@ import spikeforest as sf
 
 
 def main():
+    franklab_manual_uri = 'ipfs://QmWHTHpwGwEehUrsEnt6AMAKJegfiutzugo3B1YSziqfkv?spikeforest-sorting-outputs.json'
+
+    # the default URI includes the PAIRED_BOYDEN, PAIRED_CRCNS_HC1,
+    # PAIRED_ENGLISH, PAIRED_KAMPFF, and PAIRED_MEA64C_YGER recordings.
     all_sorting_outputs = sf.load_spikeforest_sorting_outputs()
+
+    # Other recording sets are being migrated to the new data distribution protocol as needed.
+    # To load the Franklab-Manual data set, use the following:
+    # all_sorting_outputs = sf.load_spikeforest_sorting_outputs(franklab_manual_uri)
+
 
     for X in all_sorting_outputs:
         print('=========================================================')
