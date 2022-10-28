@@ -11,7 +11,7 @@ from spikeforest._common.calling_framework import StandardArgs, add_standard_arg
 import spikeextractors as se
 import spikeforest as sf
 import hither2 as hi
-import kachery_client as kc
+import kachery_cloud as kc
 import sortingview as sv
 
 # Maps the sorter names (as they appear in the spec file) to the

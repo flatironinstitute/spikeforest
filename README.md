@@ -35,26 +35,3 @@ kachery-cloud-init
 * Load a recording and sorting extractors for a recording with ground truth: [examples/load_extractors_for_recording.py](examples/load_extractors_for_recording.py)
 * List all sorting outputs: [examples/list_all_sorting_outputs.py](examples/list_all_sorting_outputs.py)
 * Load sorting extractor for a sorting output: [examples/load_extractor_for_sorting_output.py](examples/load_extractor_for_sorting_output.py)
-* Running spike sorting: [examples/test_mountainsort4.py](examples/test_mountainsort4.py)
-
-## Frequently asked questions
-
-### How can I download the SpikeForest recordings and ground truth sorting data?
-
-See example above.
-
-### How can I download the SpikeForest sorting outputs?
-
-See example above.
-
-### How can I run spike sorting on the SpikeForest recordings?
-
-Use [SpikeInterface](https://spikeinterface.readthedocs.io/en/latest/index.html). See example above.
-
-See also [this example notebook](https://spikeinterface.readthedocs.io/en/latest/modules/sorters/plot_1_sorters_example.html#sphx-glr-modules-sorters-plot-1-sorters-example-py).
-
-## Questions to be answered later
-
-### How can I visualize a SpikeForest sorting using sortingview?
-
-### How can I run containerized spike sorting on my own computer?

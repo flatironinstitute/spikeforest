@@ -1,4 +1,4 @@
-import kachery_client as kc
+import kachery_cloud as kc
 import kachery_cloud as kcl
 from .MdaRecordingExtractorV2.MdaRecordingExtractorV2 import MdaRecordingExtractorV2
 

@@ -20,6 +20,8 @@ def main():
     W.add_sorting(recording_id=rid, label='true', sorting=sorting_true)
     for k, v in sortings.items():
         W.add_sorting(recording_id=rid, label=k, sorting=sortings[k])
+
+    W.precalculate()
     
     F = W.figurl()
     url = F.url(label=f'{study_name}/{recording_name}')

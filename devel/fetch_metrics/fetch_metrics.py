@@ -8,7 +8,7 @@ from typing import Any, Dict, List, TypedDict, cast
 from spikeforest._common.calling_framework import add_standard_args, call_cleanup, extract_hither_config, parse_shared_configuration, print_per_verbose
 import spikeextractors as se
 import hither2 as hi
-import kachery_client as kc
+import kachery_cloud as kc
 import sortingview as sv
 
 thisdir = os.path.dirname(os.path.realpath(__file__))

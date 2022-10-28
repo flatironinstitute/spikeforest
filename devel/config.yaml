@@ -1,0 +1,52 @@
+studies:
+  -
+    study_set_name: PAIRED_BOYDEN
+    study_name: paired_boyden32c
+    recording_names:
+      - "1103_1_1"
+      - "419_1_7"
+      - "419_1_8"
+      - "509_1_1"
+  -
+    study_set_name: PAIRED_CRCNS_HC1
+    study_name: paired_crcns
+    recording_names:
+      - "d11221_d11221.001"
+      - "d11221_d11221.002"
+      - "d11222_d11222.001"
+      - "d11222_d11222.002"
+  -
+    study_set_name: PAIRED_ENGLISH
+    study_name: paired_english
+    recording_names:
+      - "m26_190524_100859_cell3"
+      - "m57_191105_160026"
+      - "m113_191125_204935"
+      - "m57_191105_141906"
+      - "m139_200114_222743"
+      - "m15_190315_150831_cell1"
+      - "m139_200114_205038"
+      - "m57_191105_161455"
+      - "m139_200114_191955"
+      - "m108_191125_171427"
+      - "m57_191105_153915"
+      - "m26_190524_100859_cell1"
+      - "m14_190326_155432"
+      - "m15_190315_152315_cell1"
+      - "m15_190315_142052_cell1"
+  -
+    study_set_name: PAIRED_KAMPFF
+    study_name: paired_kampff
+    recording_names:
+      - 2014_11_25_Pair_3_0
+      - 2015_09_03_Pair_9_0A
+      - 2015_09_03_Pair_9_0B
+      - c14
+  -
+    study_set_name: PAIRED_MEA64C_YGER
+    study_name: paired_mea64c
+    recording_names:
+      - "20160415_patch2"
+      - "20170621_patch1"
+      - "20170622_patch1"
+      - "20170622_patch2"

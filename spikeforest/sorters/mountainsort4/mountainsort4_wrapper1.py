@@ -1,7 +1,7 @@
 import os
 import time
 import hither2 as hi
-import kachery_client as kc
+import kachery_cloud as kc
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 

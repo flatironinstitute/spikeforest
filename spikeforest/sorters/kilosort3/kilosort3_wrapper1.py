@@ -1,7 +1,7 @@
 import os
 from typing import Dict, List
 import hither2 as hi
-import kachery_client as kc
+import kachery_cloud as kc
 from spikeforest.sorters._matlab_license_hook import matlab_license_hook
 
 expected_kilosort3_commit = 'a1fccd9abf13ce5dc3340fae8050f9b1d0f8ab7a'

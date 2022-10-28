@@ -1,4 +1,4 @@
-import kachery_client as kc
+import kachery_cloud as kc
 import pandas as pd
 import sortingview as sv
 import numpy as np

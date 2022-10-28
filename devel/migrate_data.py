@@ -7,15 +7,16 @@ spikeforest_recordings_uri = 'ipfs://bafkreiharnfwm5ntcui4rsex4zkvxfjbytodkserud
 def main():
     x = kcl.load_json(spikeforest_recordings_uri)
     y = _migrate_recursive(x)
-    print(y)
 
 def _migrate_recursive(x: Any):
     if isinstance(x, dict):
         ret = {}
         for k, v in x.items():
+            if k == 'studyName':
+                print(f'Study: {v}')
             if isinstance(v, str):
                 if v.startswith('ipfs://') or v.startswith('sha1://'):
-                    if k == 'sortingTrueUri':
+                    if k == 'sortingTrueUri' or k == 'raw' or k == 'firings' or k == 'recordingUri':
                         label = _get_label_from_uri(v)
                         if label is None:
                             raise Exception(f'Label is None for {v}')
@@ -23,9 +24,10 @@ def _migrate_recursive(x: Any):
                         pp = kcl.load_file(v)
                         if pp is None:
                             raise Exception(f'Unable to load: {v}')
-                        print('Storing {pp}')
+                        print(f'Storing {pp} {label}')
                         kcl.store_file(pp, label=label)
-                    print(k, v)
+                    else:
+                        print('=============================', k)
                 ret[k] = v
             else:
                 ret[k] = _migrate_recursive(v)
@@ -47,6 +49,8 @@ def _get_label_from_uri(uri: str):
         for cc in bb:
             if cc.split('=')[0] == 'label':
                 return cc.split('=')[1]
+        if ('&' not in qq) and ('=' not in qq):
+            return qq
     else:
         bb = uri.split('/')
         if len(bb) >= 4:

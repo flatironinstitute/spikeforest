@@ -3,7 +3,7 @@ import json
 from typing import Any, Dict, Generator, List, NamedTuple, Set, Tuple, Union
 
 import sortingview as sv
-import kachery_client as kc
+import kachery_cloud as kc
 from spikeforest._common.calling_framework import print_per_verbose
 
 ## TODO: Need to do error checking on output ids?
