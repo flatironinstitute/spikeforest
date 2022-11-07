@@ -4,11 +4,14 @@ import kachery_cloud as kcl
 # from spikeinterface.toolkit.preprocessing import bandpass_filter
 # from nwb_conversion_tools.utils.spike_interface import write_recording
 import yaml
+import click
 
 
-def main():
+@click.command()
+@click.argument('config_fname')
+def main(config_fname: str):
     x = kcl.load_json('ipfs://bafybeibiqb7znwr7vaidri2dicqtfx6zd7u3szj6swg3iuhrozzvxtqd7u?studysets.json')
-    with open('config.yaml', 'r') as f:
+    with open(config_fname, 'r') as f:
         config = yaml.safe_load(f)
     print(config)
     recording_records = []

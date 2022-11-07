@@ -1,0 +1,9 @@
+studies:
+  -
+    study_set_name: HYBRID_JANELIA
+    study_name: hybrid_static_tetrode
+    recording_names:
+      - rec_4c_1200s_11
+      - rec_4c_1200s_21
+      - rec_4c_1200s_31
+      - rec_4c_600s_11

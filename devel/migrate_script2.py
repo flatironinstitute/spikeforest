@@ -1,14 +1,17 @@
 import kachery_cloud as kc
 import kachery_cloud as kcl
 import yaml
+import click
 
 
 def _sha1_to_stored_uri(uri: str, label: str):
     return kcl.store_file(kc.load_file(uri), label=label)
 
-def main():
+@click.command()
+@click.argument('config_fname')
+def main(config_fname: str):
     x = kcl.load_json('ipfs://bafybeihem5zeyhsgztqzi5o4qvtigsdbelvhw2ssu3x4ve32p2ztf6vq7i?label=spikeforest-sorting-outputs.json')
-    with open('config.yaml', 'r') as f:
+    with open(config_fname, 'r') as f:
         config = yaml.safe_load(f)
     config_nested = {
         'studies': {}
