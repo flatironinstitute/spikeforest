@@ -3,16 +3,15 @@ import spikeforest as sf
 
 
 def main():
-    franklab_manual_uri = 'ipfs://QmWHTHpwGwEehUrsEnt6AMAKJegfiutzugo3B1YSziqfkv?spikeforest-sorting-outputs.json'
-    hybrid_janelia_uri = 'sha1://9259d3ec1d981560e35c2ca41e59c39f2af3d37e?spikeforest-sorting-outputs.json'
+    hybrid_janelia_uri = 'sha1://9259d3ec1d981560e35c2ca41e59c39f2af3d37e?label=spikeforest-sorting-outputs.json'
 
     # the default URI includes the PAIRED_BOYDEN, PAIRED_CRCNS_HC1,
     # PAIRED_ENGLISH, PAIRED_KAMPFF, and PAIRED_MEA64C_YGER recordings.
     all_sorting_outputs = sf.load_spikeforest_sorting_outputs()
 
     # Other recording sets are being migrated to the new data distribution protocol as needed.
-    # E.G. to load the Franklab-Manual data set, use the following:
-    # all_sorting_outputs = sf.load_spikeforest_sorting_outputs(franklab_manual_uri)
+    # E.G. to load the Hybrid Janelia data set, use the following:
+    # all_sorting_outputs = sf.load_spikeforest_sorting_outputs(hybrid_janelia_uri)
 
 
     for X in all_sorting_outputs:

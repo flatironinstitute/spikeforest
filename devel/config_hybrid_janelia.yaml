@@ -1,9 +1,77 @@
 studies:
   -
     study_set_name: HYBRID_JANELIA
+    study_name: hybrid_drift_siprobe
+    recording_names:
+      - rec_16c_1200s_11
+      - rec_16c_1200s_21
+      - rec_16c_1200s_31
+      - rec_16c_600s_11
+      - rec_16c_600s_12
+      - rec_16c_600s_21
+      - rec_16c_600s_22
+      - rec_16c_600s_31
+      - rec_16c_600s_32
+      - rec_32c_1200s_11
+      - rec_32c_1200s_21
+      - rec_32c_1200s_31
+      - rec_32c_600s_11
+      - rec_32c_600s_12
+      - rec_32c_600s_21
+      - rec_32c_600s_22
+      - rec_32c_600s_31
+      - rec_32c_600s_32
+      - rec_64c_1200s_11
+      - rec_64c_600s_11
+      - rec_64c_600s_12
+  -
+    study_set_name: HYBRID_JANELIA
     study_name: hybrid_static_tetrode
     recording_names:
       - rec_4c_1200s_11
       - rec_4c_1200s_21
       - rec_4c_1200s_31
       - rec_4c_600s_11
+      - rec_4c_600s_12
+      - rec_4c_600s_21
+      - rec_4c_600s_22
+      - rec_4c_600s_31
+      - rec_4c_600s_32
+  -
+    study_set_name: HYBRID_JANELIA
+    study_name: hybrid_static_siprobe
+    recording_names:
+      - rec_16c_1200s_11
+      - rec_16c_1200s_21
+      - rec_16c_1200s_31
+      - rec_16c_600s_11
+      - rec_16c_600s_12
+      - rec_16c_600s_21
+      - rec_16c_600s_22
+      - rec_16c_600s_31
+      - rec_16c_600s_32
+      - rec_32c_1200s_11
+      - rec_32c_1200s_21
+      - rec_32c_1200s_31
+      - rec_32c_600s_11
+      - rec_32c_600s_12
+      - rec_32c_600s_21
+      - rec_32c_600s_22
+      - rec_32c_600s_31
+      - rec_32c_600s_32
+      - rec_64c_1200s_11
+      - rec_64c_600s_11
+      - rec_64c_600s_12
+  -
+    study_set_name: HYBRID_JANELIA
+    study_name: hybrid_drift_tetrode
+    recording_names:
+      - rec_4c_1200s_11
+      - rec_4c_1200s_21
+      - rec_4c_1200s_31
+      - rec_4c_600s_11
+      - rec_4c_600s_12
+      - rec_4c_600s_21
+      - rec_4c_600s_22
+      - rec_4c_600s_31
+      - rec_4c_600s_32
