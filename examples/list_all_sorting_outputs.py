@@ -4,6 +4,7 @@ import spikeforest as sf
 
 def main():
     hybrid_janelia_uri = 'sha1://9259d3ec1d981560e35c2ca41e59c39f2af3d37e?label=spikeforest-sorting-outputs.json'
+    synth_monotrode_uri = 'sha1://13bb69e2115e076376b0c1d7e08274e36ab1f067?label=spikeforest-sorting-outputs.json'
 
     # the default URI includes the PAIRED_BOYDEN, PAIRED_CRCNS_HC1,
     # PAIRED_ENGLISH, PAIRED_KAMPFF, and PAIRED_MEA64C_YGER recordings.

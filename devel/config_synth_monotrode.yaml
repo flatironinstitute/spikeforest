@@ -1,0 +1,136 @@
+studies:
+  -
+    study_set_name: SYNTH_MONOTRODE
+    study_name: neurocube_quiroga_easy2
+    recording_names:
+      - C_Easy2_noise005
+      - C_Easy2_noise01
+      - C_Easy2_noise015
+      - C_Easy2_noise02
+  -
+    study_set_name: SYNTH_MONOTRODE
+    study_name: neurocube_quiroga_difficult2
+    recording_names:
+      - C_Difficult2_noise005
+      - C_Difficult2_noise01
+      - C_Difficult2_noise015
+      - C_Difficult2_noise02
+  -
+    study_set_name: SYNTH_MONOTRODE
+    study_name: neurocube_quiroga_easy1
+    recording_names:
+      - C_Easy1_noise005
+      - C_Easy1_noise01
+      - C_Easy1_noise015
+      - C_Easy1_noise02
+  -
+    study_set_name: SYNTH_MONOTRODE
+    study_name: neurocube_sim2_11K20
+    recording_names:
+      - simulation_1
+      - simulation_10
+      - simulation_11
+      - simulation_12
+      - simulation_19
+      - simulation_2
+      - simulation_20
+      - simulation_23
+      - simulation_25
+      - simulation_26
+      - simulation_28
+      - simulation_3
+      - simulation_31
+      - simulation_35
+      - simulation_36
+      - simulation_38
+      - simulation_41
+      - simulation_43
+      - simulation_44
+      - simulation_47
+      - simulation_49
+      - simulation_5
+      - simulation_50
+      - simulation_51
+      - simulation_52
+      - simulation_55
+      - simulation_56
+      - simulation_6
+      - simulation_60
+      - simulation_61
+      - simulation_63
+      - simulation_65
+      - simulation_66
+      - simulation_67
+      - simulation_69
+      - simulation_7
+      - simulation_70
+      - simulation_71
+      - simulation_72
+      - simulation_74
+      - simulation_75
+      - simulation_79
+      - simulation_82
+      - simulation_85
+      - simulation_86
+      - simulation_9
+      - simulation_90
+      - simulation_91
+      - simulation_92
+      - simulation_95
+  -
+    study_set_name: SYNTH_MONOTRODE
+    study_name: neurocube_quiroga_difficult1
+    recording_names:
+      - C_Difficult1_noise005
+      - C_Difficult1_noise01
+      - C_Difficult1_noise015
+      - C_Difficult1_noise02
+  -
+    study_set_name: SYNTH_MONOTRODE
+    study_name: neurocube_sim2_2K10
+    recording_names:
+      - simulation_13
+      - simulation_14
+      - simulation_15
+      - simulation_16
+      - simulation_17
+      - simulation_18
+      - simulation_21
+      - simulation_22
+      - simulation_24
+      - simulation_27
+      - simulation_29
+      - simulation_30
+      - simulation_32
+      - simulation_33
+      - simulation_34
+      - simulation_37
+      - simulation_39
+      - simulation_4
+      - simulation_40
+      - simulation_42
+      - simulation_45
+      - simulation_46
+      - simulation_48
+      - simulation_53
+      - simulation_54
+      - simulation_57
+      - simulation_58
+      - simulation_59
+      - simulation_62
+      - simulation_64
+      - simulation_68
+      - simulation_73
+      - simulation_76
+      - simulation_77
+      - simulation_78
+      - simulation_8
+      - simulation_80
+      - simulation_81
+      - simulation_83
+      - simulation_84
+      - simulation_87
+      - simulation_88
+      - simulation_89
+      - simulation_93
+      - simulation_94
