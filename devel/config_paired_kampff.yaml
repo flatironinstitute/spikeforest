@@ -1,0 +1,20 @@
+studies:
+  -
+    study_set_name: PAIRED_KAMPFF
+    study_name: paired_kampff
+    recording_names:
+      - 2014_11_25_Pair_3_0
+      - 2015_09_03_Pair_9_0A
+      - 2015_09_03_Pair_9_0B
+      - c14
+      - c16
+      - c19
+      - c21
+      - c24
+      - c26
+      - c27
+      - c28
+      - c42
+      - c44
+      - c45
+      - c46
