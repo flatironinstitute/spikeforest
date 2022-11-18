@@ -31,6 +31,9 @@ class MdaRecordingExtractorV2(BaseRecording):
                                channel_ids=np.arange(num_channels), dtype=dtype)
         rec_segment = MdaRecordingSegment(self._diskreadmda, sampling_frequency)
         self.add_recording_segment(rec_segment)
+        if np.array(geom).ndim == 1:
+            # handle monotrode case
+            geom = [geom,]
         self.set_dummy_probe_from_locations(np.array(geom))
         self._kwargs = {'raw_path': str(Path(raw_path).absolute()),
                         'params': params,

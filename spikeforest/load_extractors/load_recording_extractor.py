@@ -1,4 +1,3 @@
-import kachery_cloud as kc
 import kachery_cloud as kcl
 from .MdaRecordingExtractorV2.MdaRecordingExtractorV2 import MdaRecordingExtractorV2
 
@@ -17,10 +16,7 @@ def load_recording_extractor(recording_object: dict):
     data = recording_object['data']
     if recording_format == 'mda':
         raw_uri = data['raw']
-        if raw_uri.startswith('ipfs://'):
-            raw_path = kcl.load_file(raw_uri, verbose=True)
-        else:
-            raw_path = kc.load_file(raw_uri)
+        raw_path = kcl.load_file(raw_uri)
         geom = data.get('geom', None)
         params = data.get('params', None)
         assert raw_path is not None, f'Unable to load raw file: {raw_uri}'
