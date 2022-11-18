@@ -14,12 +14,8 @@ All data are pinned to [IPFS](https://ipfs.io/) and available on the [kachery-cl
 
 It is recommended that you use a conda environment with Python >= 3.8 and numpy
 
-Clone this repository and install via pip
-
 ```bash
-git clone <repo>
-cd spikeforest
-pip install -e .
+pip install --upgrade spikeforest
 ```
 
 Configure your kachery-cloud client
