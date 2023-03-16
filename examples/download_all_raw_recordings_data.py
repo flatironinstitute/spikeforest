@@ -10,26 +10,27 @@ import os
 import spikeforest as sf
 from spikeforest.load_extractors.MdaRecordingExtractorV2.MdaRecordingExtractorV2 import readmda
 
-
 def main():
+    """
+    This function reads all the recordings from spikeforest recording dataset.
+    creates a directory tree that stores the data by study set name -> study name.
+    it downloads each datasets parameters (fire rate, sample rate etc), and than each recording raw data.
+
+    kachery_cloud downloads all the raw data to .kachery-cloud directory in your home directory.
+
+    so we the download and copying of the data to the script generated directory tree, it deletes it from the .kachery-cloud,
+    inorder to avoid duplication for files across your file system
+    """
     parser = argparse.ArgumentParser(
-        description="Prepare SpikeForest recordings (i.e., populate this repository)")
+        description="down load all the raw data recordings from spikeforest datasets")
     parser.add_argument('--output_dir', help='The output directory (e.g., recordings)')
-    parser.add_argument('--upload', action='store_true',
-                        help='Whether to upload the recording objects to kachery (password required)')
     # parser.add_argument('--verbose', action='store_true', help='Turn on verbose output')
 
     args = parser.parse_args()
     output_dir = args.output_dir
-
-    # geom_mearec_neuronexus = np.genfromtxt('mearec_neuronexus_geom.csv', delimiter=',').tolist()
-
-    # Load a spikeforest analysis object
     all_recordings = sf.load_spikeforest_recordings()
 
-    # the output directory on the local machine
     basedir = output_dir
-
     if not os.path.exists(basedir):
         os.mkdir(basedir)
     studySets = []
