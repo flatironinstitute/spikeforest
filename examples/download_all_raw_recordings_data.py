@@ -70,7 +70,8 @@ def main():
             json.dump(studyset, f, indent=4)
         print('getting raw data for {}/{}'.format(studyset_name, study_name))
         rec = R.get_recording_extractor()
-        readmda(rec._kwargs['raw_path']).tofile(os.path.join(studydir_local, recname + '.dat'))
+        mda = readmda(rec._kwargs['raw_path'])
+        np.save(os.path.join(studydir_local, recname), mda)
         raw_data_paths.append(rec._kwargs['raw_path'])
         studySets.append(studyset)
     studysets_obj = dict(
