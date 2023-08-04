@@ -9,8 +9,7 @@ import numpy as np
 from dateutil.tz import tzlocal
 
 from pynwb import NWBHDF5IO, NWBFile
-from pynwb.ecephys import LFP, ElectricalSeries
-from pynwb.file import Subject
+from pynwb.ecephys import ElectricalSeries
 
 from StudyInfo import StudyInfo
 from RecordingInfo import RecordingInfo
@@ -29,21 +28,14 @@ def _prepare_recording(R: SFRecording, *, nwb_fname: str, study_info: StudyInfo,
     nwbfile = NWBFile(
         session_description=f'SpikeForest recording: {R.study_set_name}/{R.study_name}/{R.recording_name}',
         identifier=str(uuid4()),
-        session_start_time=datetime.now(tzlocal()),
+        session_start_time=datetime(1970, 1, 1, tzinfo=tzlocal()),
         experimenter=study_info.experimenter,
         experiment_description=study_info.experiment_description,
         lab=study_info.lab,
         institution=study_info.institution,
-        subject=Subject( # tutorial didn't include this
-            subject_id='unknown',
-            age='P0Y',
-            date_of_birth=datetime(1970, 1, 1, 12, tzinfo=tzlocal()),
-            sex='U',
-            species='Unknown species',
-            description='Unknown subject'
-         ),
+        subject=study_info.subject,
         session_id=f'{R.study_name}/{R.recording_name}',
-        keywords=['spikeforest'] # tutorial didn't include this
+        keywords=study_info.keywords # tutorial didn't include this
     )
 
     # add electrode information
