@@ -7,6 +7,6 @@ setup(
         'kachery-client>=1.2.0',
         'kachery-cloud>=0.1.4',
         'sortingview>=0.7.3',
-        'spikeinterface>=0.93.0'
+        'spikeinterface>=0.100.0'
     ]
 )
